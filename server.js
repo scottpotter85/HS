@@ -7,7 +7,7 @@ const app = express(); // Express App initialisieren
 
 // CORS-Konfiguration
 const corsOptions = {
-    origin: ['https://hs-2r01.onrender.com', 'http://localhost:5050'],
+    origin: ['https://hs-2r01.onrender.com', 'http://localhost:5050', 'https://scottpotter85.github.io'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Zusätzliche CORS-Header für alle Routen
 app.use((req, res, next) => {
-    const allowedOrigins = ['https://hs-2r01.onrender.com', 'http://localhost:5050'];
+    const allowedOrigins = ['https://hs-2r01.onrender.com', 'http://localhost:5050', 'https://scottpotter85.github.io'];
     const origin = req.headers.origin;
     
     if (allowedOrigins.includes(origin)) {
