@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Produktionsaufträge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #009999;
+            --accent-color: #FFB900;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, '72', 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            position: sticky;
+            top: env(safe-area-inset-top);
+            left: 0;
+            right: 0;
+            background-color: var(--primary-color);
+            padding-top: max(10px, env(safe-area-inset-top));
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+
+        .nav-tabs {
+            background: #fff;
+            border-radius: 12px;
+            padding: 5px;
+            margin: 10px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+
+        .nav-tabs .nav-item {
+            flex: 1;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-color);
+            background: none;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 8px;
+            margin: 0;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        .nav-tabs .nav-link i {
+            font-size: 20px;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .auftrag-card {
+            background: white;
+            border-radius: 12px;
+            margin: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+
+        .auftrag-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .auftrag-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .auftrag-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-neu { background-color: #e3f2fd; color: #1976d2; }
+        .status-in_planung { background-color: #fff3e0; color: #f57c00; }
+        .status-in_production { background-color: #e8f5e9; color: #2e7d32; }
+        .status-abgeschlossen { background-color: #f5f5f5; color: #616161; }
+
+        .scroll-container {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+
+        .pull-to-refresh {
+            height: 50px;
+            margin-top: -50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .refresh-spinner {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .refreshing .refresh-spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            margin: 10px;
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 15px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            min-height: 44px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .alert {
+            position: fixed;
+            top: calc(70px + var(--safe-area-inset-top));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
+            border-radius: 12px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translate(-50%, -100%); }
+            to { transform: translate(-50%, 0); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center justify-content-center w-100">
+                <img src="LOGO.svg" 
+                     alt="Logo" 
+                     class="navbar-logo me-2">
+                <span class="navbar-brand text-white mb-0">Produktionsaufträge</span>
+            </div>
+            <div class="d-flex justify-content-center w-100">
+                <button class="btn btn-outline-light me-2" type="button" onclick="showNewAuftrag()">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="d-none d-sm-inline">Neu</span>
+                </button>
+                <button class="btn btn-outline-light refresh-button" type="button" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="d-none d-sm-inline">Aktualisieren</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <style>
+        .navbar {
+            min-height: 60px;
+            flex-shrink: 0;
+        }
+        
+        .navbar-logo {
+            height: 30px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        .nav-tabs {
+            background: #fff;
+            position: sticky;
+            top: calc(60px + env(safe-area-inset-top));
+            z-index: 999;
+            margin: 0;
+            padding: 5px 10px;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tab-pane {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (orientation: portrait) {
+            .navbar {
+                min-height: auto;
+                padding: env(safe-area-inset-top) env(safe-area-inset-right) 10px env(safe-area-inset-left);
+            }
+            
+            .navbar .container-fluid {
+                flex-direction: column;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .navbar-logo {
+                height: 20px;
+            }
+
+            .navbar-brand {
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 4px 8px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* iPad spezifische Anpassungen */
+        @media (min-width: 768px) {
+            .navbar .container-fluid {
+                max-width: 90%;
+                margin: 0 auto;
+            }
+
+            .navbar-logo {
+                height: 35px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+            }
+        }
+    </style>
+
+    <ul class="nav nav-tabs" id="prodTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="aktiv-tab" data-bs-toggle="tab" data-bs-target="#bereichAktiv" type="button" role="tab">
+                <i class="bi bi-list-task"></i>
+                Aktiv
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="kalender-tab" data-bs-toggle="tab" data-bs-target="#bereichKalender" type="button" role="tab">
+                <i class="bi bi-calendar"></i>
+                Kalender
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="archiv-tab" data-bs-toggle="tab" data-bs-target="#bereichArchiv" type="button" role="tab">
+                <i class="bi bi-archive"></i>
+                Archiv
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="prodTabsContent">
+        <div class="tab-pane fade show active" id="bereichAktiv">
+            <div class="scroll-container" id="aktivContainer">
+                <div class="pull-to-refresh">
+                    <i class="bi bi-arrow-clockwise refresh-spinner"></i>
+                    <span>Zum Aktualisieren ziehen</span>
+                </div>
+                <div id="aktiveListe"></div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="bereichKalender">
+            <div class="scroll-container" id="kalenderContainer">
+                <div id="kalenderAnsicht">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar3" style="font-size: 2rem;"></i>
+                        <p class="mt-2">Lade Kalender...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="bereichArchiv">
+            <div class="scroll-container" id="archivContainer">
+                <div class="pull-to-refresh">
+                    <i class="bi bi-arrow-clockwise refresh-spinner"></i>
+                    <span>Zum Aktualisieren ziehen</span>
+                </div>
+                <div id="archivListe">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-hourglass" style="font-size: 2rem;"></i>
+                        <p class="mt-2">Lade Archivdaten...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Auftrag Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="auftragForm">
+                        <div class="mb-3">
+                            <label class="form-label">Bezeichnung</label>
+                            <input type="text" class="form-control" id="bezeichnung" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Artikelnummer</label>
+                            <input type="text" class="form-control" id="artikelnummer">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Artikelbezeichnung</label>
+                            <input type="text" class="form-control" id="artikelbezeichnung">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Beschreibung</label>
+                            <textarea class="form-control" id="beschreibung" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" id="status">
+                                <option value="neu">Neu</option>
+                                <option value="in_planung">In Planung</option>
+                                <option value="in_production">In Produktion</option>
+                                <option value="abgeschlossen">Abgeschlossen</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Maschine</label>
+                            <input type="text" class="form-control" id="maschine">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bearbeiter</label>
+                            <input type="text" class="form-control" id="bearbeiter">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sollmenge</label>
+                            <input type="number" class="form-control" id="sollMenge">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteAuftrag()">Löschen</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAuftrag()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für neue Aufträge -->
+    <div class="modal fade" id="newAuftragModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neuer Auftrag</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newAuftragForm">
+                        <div class="mb-3">
+                            <label class="form-label">Bezeichnung*</label>
+                            <input type="text" class="form-control" id="new_bezeichnung" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Artikelnummer</label>
+                            <input type="text" class="form-control" id="new_artikelnummer">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Artikelbezeichnung</label>
+                            <input type="text" class="form-control" id="new_artikelbezeichnung">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Beschreibung</label>
+                            <textarea class="form-control" id="new_beschreibung" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Maschine</label>
+                            <select class="form-select" id="new_maschine">
+                                <option value="">Bitte wählen...</option>
+                                <option value="CNC1">CNC1</option>
+                                <option value="CNC2">CNC2</option>
+                                <option value="Drehbank1">Drehbank1</option>
+                                <option value="Drehbank2">Drehbank2</option>
+                                <option value="Fräse1">Fräse1</option>
+                                <option value="Fräse2">Fräse2</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bearbeiter</label>
+                            <input type="text" class="form-control" id="new_bearbeiter">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sollmenge</label>
+                            <input type="number" class="form-control" id="new_sollMenge">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="createNewAuftrag()">Erstellen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE_URL = 'http://192.168.8.183:5050';
+        let currentAuftragId = null;
+        const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        
+        // Hauptfunktionen für Daten-Management
+        async function fetchData(endpoint) {
+            try {
+                console.log(`Fetching data from: ${API_BASE_URL}${endpoint}`);
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                
+                if (!response.ok) {
+                    console.error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    console.error('Response text:', text);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                return data;
+            } catch (error) {
+                console.error('Fehler beim Datenabruf:', error);
+                showError(`Fehler beim Laden der Daten: ${error.message}`);
+                return null;
+            }
+        }
+
+        async function sendData(endpoint, method, data) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Response text:', text);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Fehler beim Senden der Daten:', error);
+                showError(`Fehler beim Speichern: ${error.message}`);
+                return null;
+            }
+        }
+
+        function formatAuftragCard(item, isArchive = false) {
+            return `
+                <div class="auftrag-card" onclick="showDetails(${item.id})">
+                    <div class="auftrag-header">
+                        <div>
+                            <h3 class="auftrag-title">${item.bezeichnung || 'Kein Titel'}</h3>
+                            <div class="auftrag-meta">
+                                ${item.artikelnummer ? `Art.Nr.: ${item.artikelnummer}<br>` : ''}
+                                ${item.artikelbezeichnung || ''}<br>
+                                ${isArchive 
+                                    ? `Abgeschlossen: ${item.datum} ${item.endZeit || ''}`
+                                    : `${item.datum} ${item.startZeit || ''}`
+                                }
+                            </div>
+                        </div>
+                        <span class="status-badge status-${(item.status || '').toLowerCase()}">${item.status || 'Neu'}</span>
+                    </div>
+                    <div class="auftrag-meta">
+                        ${item.maschine ? `<i class="bi bi-tools"></i> ${item.maschine}<br>` : ''}
+                        ${item.bearbeiter ? `<i class="bi bi-person"></i> ${item.bearbeiter}<br>` : ''}
+                        ${item.sollMenge ? `<i class="bi bi-box"></i> ${item.sollMenge} Stück<br>` : ''}
+                        ${isArchive && item.rueckmeldung ? `<i class="bi bi-chat-left-text"></i> ${item.rueckmeldung}<br>` : ''}
+                        ${item.beschreibung ? `<i class="bi bi-info-circle"></i> ${item.beschreibung}` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadAktiveDaten() {
+            try {
+                console.log('Lade aktive Daten...');
+                const data = await fetchData('/api/Produktion/auftraege/recent');
+                if (data) {
+                    const liste = document.getElementById('aktiveListe');
+                    liste.innerHTML = data.map(formatAuftragCard).join('');
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der aktiven Daten:', error);
+                showError('Fehler beim Laden der Daten');
+            }
+        }
+
+        async function loadArchivDaten() {
+            try {
+                console.log('Lade Archivdaten...');
+                const data = await fetchData('/api/Produktion/auftraege/archiv');
+                console.log('Empfangene Archivdaten:', data);
+                
+                const liste = document.getElementById('archivListe');
+                if (!data || data.length === 0) {
+                    liste.innerHTML = `
+                        <div class="auftrag-card">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Keine abgeschlossenen Aufträge gefunden</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    liste.innerHTML = data.map(item => formatAuftragCard(item, true)).join('');
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Archivdaten:', error);
+                showError('Fehler beim Laden der Archivdaten');
+                
+                const liste = document.getElementById('archivListe');
+                liste.innerHTML = `
+                    <div class="auftrag-card">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Fehler beim Laden der Archivdaten</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function getFirstDayOfMonth(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function changeMonth(delta) {
+            event.preventDefault(); // Verhindert Bubble-Up des Click-Events
+            event.stopPropagation();
+            
+            console.log('Changing month by:', delta);
+            console.log('Current month/year before:', currentMonth, currentYear);
+            
+            currentMonth += delta;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            
+            console.log('New month/year:', currentMonth, currentYear);
+            loadKalenderDaten();
+        }
+
+        async function loadKalenderDaten() {
+            try {
+                console.log('=== Kalender Debug ===');
+                console.log('Lade Kalenderdaten...');
+                console.log('Aktueller Monat/Jahr:', currentMonth, currentYear);
+                
+                const url = `http://192.168.8.183:5050/api/Produktion/auftraege/kalender?year=${currentYear}&month=${currentMonth + 1}`;
+                console.log('Requesting URL:', url);
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                let data = await response.json();
+                console.log('Empfangene Kalenderdaten:', data);
+                
+                // Stelle sicher, dass data ein Array ist
+                if (!Array.isArray(data)) {
+                    if (typeof data === 'object' && data !== null) {
+                        // Wenn es ein Objekt ist, versuche es in ein Array zu konvertieren
+                        data = [data];
+                    } else {
+                        data = [];
+                    }
+                }
+                
+                console.log('Verarbeitete Kalenderdaten:', data);
+                
+                if (data.length === 0) {
+                    console.log('Keine Aufträge für diesen Monat gefunden');
+                }
+
+                const kalender = document.getElementById('kalenderAnsicht');
+                const heute = new Date();
+                const aktuellerMonat = currentMonth;
+                const aktuellesJahr = currentYear;
+                
+                // Aufträge nach Datum gruppieren
+                const auftraegeNachDatum = {};
+                data.forEach(auftrag => {
+                    console.log('Verarbeite Auftrag:', auftrag);
+                    // Stelle sicher, dass das Datum im korrekten Format ist
+                    let datum = auftrag.datum;
+                    if (datum && datum.includes('T')) {
+                        datum = datum.split('T')[0];
+                    }
+                    if (!datum) {
+                        console.warn('Auftrag ohne Datum gefunden:', auftrag);
+                        return;
+                    }
+                    if (!auftraegeNachDatum[datum]) {
+                        auftraegeNachDatum[datum] = [];
+                    }
+                    auftraegeNachDatum[datum].push(auftrag);
+                });
+                
+                console.log('Aufträge nach Datum gruppiert:', auftraegeNachDatum);
+
+                // Kalender-Header
+                const monate = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
+                              'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+                const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+                let html = `
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="month-navigation">
+                                <button type="button" class="btn btn-link month-nav-btn prev-month">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <h4 class="mb-0">${monate[aktuellerMonat]} ${aktuellesJahr}</h4>
+                                <button type="button" class="btn btn-link month-nav-btn next-month">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid">
+                            ${wochentage.map(tag => `<div class="calendar-weekday">${tag}</div>`).join('')}
+                `;
+
+                const ersterTag = getFirstDayOfMonth(aktuellesJahr, aktuellerMonat);
+                const tageImMonat = getDaysInMonth(aktuellesJahr, aktuellerMonat);
+
+                // Leere Zellen für Tage vor dem Monatsbeginn
+                for (let i = 0; i < ersterTag; i++) {
+                    html += '<div class="calendar-day empty"></div>';
+                }
+
+                // Tage des Monats
+                for (let tag = 1; tag <= tageImMonat; tag++) {
+                    const datum = formatDate(new Date(aktuellesJahr, aktuellerMonat, tag));
+                    console.log('Prüfe Datum:', datum);
+                    const auftraege = auftraegeNachDatum[datum] || [];
+                    console.log('Gefundene Aufträge für', datum + ':', auftraege);
+                    const istHeute = tag === heute.getDate() && 
+                                   aktuellerMonat === heute.getMonth() && 
+                                   aktuellesJahr === heute.getFullYear();
+
+                    html += `
+                        <div class="calendar-day ${istHeute ? 'today' : ''}">
+                            <div class="day-number">${tag}</div>
+                            <div class="day-content">
+                                                ${auftraege.map(auftrag => {
+                    const status = (auftrag.status || '').toLowerCase().replace(/[^a-z]/g, '_');
+                    return `
+                        <div class="calendar-event" onclick="showDetails(${auftrag.id})">
+                            <div class="event-dot status-${status}"></div>
+                            <div class="event-title">${auftrag.bezeichnung || 'Kein Titel'}</div>
+                            <div class="event-time">${auftrag.startZeit ? auftrag.startZeit.substring(0, 5) : ''}</div>
+                        </div>
+                    `;
+                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+
+                // CSS für den Kalender
+                const style = `
+                    <style>
+                        .calendar-container {
+                            padding: 10px;
+                            background: white;
+                            border-radius: 15px;
+                            margin: 10px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        }
+                        .calendar-header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                        }
+                        .month-navigation {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 0 10px;
+                        }
+                        .month-navigation .btn-link {
+                            color: var(--primary-color);
+                            text-decoration: none;
+                            padding: 5px;
+                            min-height: auto;
+                        }
+                        .month-navigation .btn-link:hover {
+                            background-color: #f0f0f0;
+                            border-radius: 50%;
+                        }
+                        .month-navigation h4 {
+                            margin: 0;
+                            padding: 0 15px;
+                        }
+                        .calendar-grid {
+                            display: grid;
+                            grid-template-columns: repeat(7, 1fr);
+                            gap: 5px;
+                        }
+                        .calendar-weekday {
+                            text-align: center;
+                            font-weight: bold;
+                            padding: 10px;
+                            color: #666;
+                            font-size: 14px;
+                        }
+                        .calendar-day {
+                            min-height: 80px;
+                            padding: 5px;
+                            border: 1px solid #eee;
+                            border-radius: 8px;
+                            background: white;
+                        }
+                        .calendar-day.empty {
+                            background: #f9f9f9;
+                        }
+                        .calendar-day.today {
+                            background: #f0f7ff;
+                            border-color: var(--primary-color);
+                        }
+                        .day-number {
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                            font-size: 14px;
+                            color: #333;
+                        }
+                        .day-content {
+                            font-size: 12px;
+                        }
+                        .calendar-event {
+                            margin: 2px 0;
+                            padding: 2px 4px;
+                            border-radius: 4px;
+                            background: #f8f9fa;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                            cursor: pointer;
+                        }
+                        .event-dot {
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 50%;
+                        }
+                        .event-dot.status-neu { background: #2196F3; }
+                        .event-dot.status-in_planung { background: #FF9800; }
+                        .event-dot.status-in_arbeit { background: #4CAF50; }
+                        .event-dot.status-abgeschlossen { background: #9E9E9E; }
+                        .event-dot.status-storniert { background: #F44336; }
+                        /* Fallback für unbekannte Status */
+                        .event-dot { background: #9C27B0; }
+                        .event-title {
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            flex: 1;
+                        }
+                        .event-time {
+                            font-size: 10px;
+                            color: #666;
+                            margin-left: 4px;
+                        }
+                        .calendar-event {
+                            display: flex;
+                            align-items: center;
+                            margin: 2px 0;
+                            padding: 2px 4px;
+                            border-radius: 4px;
+                            background: #f8f9fa;
+                            cursor: pointer;
+                            transition: background-color 0.2s;
+                        }
+                        .calendar-event:hover {
+                            background: #e9ecef;
+                        }
+                    </style>
+                `;
+
+                kalender.innerHTML = style + html;
+            } catch (error) {
+                console.error('Fehler beim Laden der Kalenderdaten:', error);
+                const kalender = document.getElementById('kalenderAnsicht');
+                kalender.innerHTML = `
+                    <div class="calendar-container">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Fehler beim Laden der Kalenderdaten</p>
+                            <p class="small text-danger">${error.message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        async function showDetails(id) {
+            try {
+                currentAuftragId = id;
+                const response = await fetch(`${API_BASE_URL}/api/Produktion/auftraege/details/${id}`);
+                if (!response.ok) throw new Error('Fehler beim Laden der Details');
+                const auftrag = await response.json();
+                
+                document.getElementById('bezeichnung').value = auftrag.bezeichnung || '';
+                document.getElementById('artikelnummer').value = auftrag.artikelnummer || '';
+                document.getElementById('artikelbezeichnung').value = auftrag.artikelbezeichnung || '';
+                document.getElementById('beschreibung').value = auftrag.beschreibung || '';
+                document.getElementById('status').value = (auftrag.status || '').toLowerCase();
+                document.getElementById('maschine').value = auftrag.maschine || '';
+                document.getElementById('bearbeiter').value = auftrag.bearbeiter || '';
+                document.getElementById('sollMenge').value = auftrag.sollMenge || '';
+                
+                detailsModal.show();
+            } catch (error) {
+                console.error('Fehler beim Laden der Details:', error);
+                showError('Fehler beim Laden der Details');
+            }
+        }
+
+        async function saveAuftrag() {
+            if (!currentAuftragId) return;
+            
+            const auftragData = {
+                bezeichnung: document.getElementById('bezeichnung').value,
+                artikelnummer: document.getElementById('artikelnummer').value,
+                artikelbezeichnung: document.getElementById('artikelbezeichnung').value,
+                beschreibung: document.getElementById('beschreibung').value,
+                status: document.getElementById('status').value,
+                maschine: document.getElementById('maschine').value,
+                bearbeiter: document.getElementById('bearbeiter').value,
+                sollMenge: document.getElementById('sollMenge').value,
+                datum: new Date().toISOString().split('T')[0],
+                startZeit: new Date().toTimeString().split(' ')[0]
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/Produktion/auftraege/update/${currentAuftragId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(auftragData)
+                });
+
+                if (!response.ok) throw new Error('Fehler beim Speichern');
+                
+                detailsModal.hide();
+                refreshData();
+                showSuccess('Änderungen gespeichert');
+            } catch (error) {
+                console.error('Fehler beim Speichern:', error);
+                showError('Fehler beim Speichern der Änderungen');
+            }
+        }
+
+        async function deleteAuftrag() {
+            if (!currentAuftragId || !confirm('Auftrag wirklich löschen?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/Produktion/auftraege/delete/${currentAuftragId}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('Fehler beim Löschen');
+                
+                detailsModal.hide();
+                refreshData();
+                showSuccess('Auftrag gelöscht');
+            } catch (error) {
+                console.error('Fehler beim Löschen:', error);
+                showError('Fehler beim Löschen des Auftrags');
+            }
+        }
+
+        async function refreshData() {
+            const refreshButton = document.querySelector('.refresh-button');
+            refreshButton.classList.add('refreshing');
+            
+            try {
+                // Aktiven Tab und Content finden
+                const activeTab = document.querySelector('.nav-link.active');
+                const activeContent = document.querySelector('.tab-pane.active');
+                const activeTabId = activeTab ? activeTab.id : 'aktiv-tab';
+                const activeContentId = activeContent ? activeContent.id : 'bereichAktiv';
+                
+                // Daten aktualisieren
+                switch (activeTabId) {
+                    case 'aktiv-tab':
+                        await loadAktiveDaten();
+                        break;
+                    case 'kalender-tab':
+                        await loadKalenderDaten();
+                        break;
+                    case 'archiv-tab':
+                        await loadArchivDaten();
+                        break;
+                }
+
+                // Tab-Zustand wiederherstellen
+                document.querySelectorAll('.nav-link').forEach(tab => {
+                    tab.classList.remove('active');
+                    const content = document.getElementById(tab.getAttribute('data-bs-target').substring(1));
+                    if (content) content.classList.remove('show', 'active');
+                });
+                
+                activeTab.classList.add('active');
+                const targetContent = document.getElementById(activeContentId);
+                if (targetContent) {
+                    targetContent.classList.add('show', 'active');
+                }
+
+                showSuccess('Daten aktualisiert');
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren:', error);
+                showError('Fehler beim Aktualisieren der Daten');
+            } finally {
+                refreshButton.classList.remove('refreshing');
+            }
+        }
+
+        function showSuccess(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        function showError(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger';
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Funktionen für neue Aufträge
+        const newAuftragModal = new bootstrap.Modal(document.getElementById('newAuftragModal'));
+        
+        function showNewAuftrag() {
+            // Formular zurücksetzen
+            document.getElementById('newAuftragForm').reset();
+            newAuftragModal.show();
+        }
+
+        async function createNewAuftrag() {
+            const bezeichnung = document.getElementById('new_bezeichnung').value;
+            if (!bezeichnung) {
+                showError('Bitte geben Sie eine Bezeichnung ein');
+                return;
+            }
+
+            const auftragData = {
+                bezeichnung: bezeichnung,
+                artikelnummer: document.getElementById('new_artikelnummer').value,
+                artikelbezeichnung: document.getElementById('new_artikelbezeichnung').value,
+                beschreibung: document.getElementById('new_beschreibung').value,
+                maschine: document.getElementById('new_maschine').value,
+                bearbeiter: document.getElementById('new_bearbeiter').value,
+                sollMenge: document.getElementById('new_sollMenge').value,
+                status: 'neu',
+                datum: new Date().toISOString().split('T')[0],
+                startZeit: new Date().toTimeString().split(' ')[0]
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/Produktion/auftraege`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(auftragData)
+                });
+
+                if (!response.ok) throw new Error('Fehler beim Erstellen des Auftrags');
+                
+                newAuftragModal.hide();
+                showSuccess('Auftrag erstellt');
+                
+                // Aktuelle Ansicht aktualisieren
+                const activeTab = document.querySelector('.nav-link.active');
+                if (activeTab && activeTab.id === 'aktiv-tab') {
+                    await loadAktiveDaten();
+                }
+            } catch (error) {
+                console.error('Fehler beim Erstellen des Auftrags:', error);
+                showError('Fehler beim Erstellen des Auftrags');
+            }
+        }
+
+        // Event Listener
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialer Load der aktiven Daten
+            loadAktiveDaten();
+            
+            // Initialer Load des Kalenders, wenn der Tab aktiv ist
+            const initialKalenderTab = document.querySelector('#kalender-tab');
+            if (initialKalenderTab.classList.contains('active')) {
+                loadKalenderDaten();
+            }
+            
+            // Event-Listener für Monatsnavigation
+            document.addEventListener('click', (event) => {
+                const btn = event.target.closest('.month-nav-btn');
+                if (btn) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const delta = btn.classList.contains('prev-month') ? -1 : 1;
+                    console.log('Navigation geklickt:', delta);
+                    changeMonth(delta);
+                }
+            });
+            
+            // Initialer Load des Kalenders
+            const kalenderTab = document.getElementById('kalender-tab');
+            if (kalenderTab) {
+                kalenderTab.addEventListener('shown.bs.tab', () => {
+                    console.log('Kalender Tab aktiviert');
+                    loadKalenderDaten();
+                });
+            }
+
+            // Bootstrap Tab Events
+            const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', (event) => {
+                    const targetId = event.target.getAttribute('data-bs-target').substring(1);
+                    console.log('Tab gewechselt zu:', targetId);
+                    
+                    switch(targetId) {
+                        case 'bereichAktiv':
+                            loadAktiveDaten();
+                            break;
+                        case 'bereichKalender':
+                            loadKalenderDaten();
+                            break;
+                        case 'bereichArchiv':
+                            loadArchivDaten();
+                            break;
+                    }
+                });
+            });
+
+            // Pull-to-Refresh Setup
+            let touchStart = 0;
+            let touchMove = 0;
+            let isRefreshing = false;
+
+            document.addEventListener('touchstart', (e) => {
+                touchStart = e.touches[0].pageY;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (isRefreshing) return;
+                
+                touchMove = e.touches[0].pageY;
+                const pull = touchMove - touchStart;
+                const container = document.querySelector('.scroll-container');
+                
+                if (pull > 100 && container.scrollTop <= 0) {
+                    isRefreshing = true;
+                    refreshData().finally(() => {
+                        isRefreshing = false;
+                    });
+                }
+            }, { passive: true });
+        });
+    </script>
+</body>
+</html> 

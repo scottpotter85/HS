@@ -1,0 +1,2699 @@
+<!--
+MIT License
+
+Copyright (c) 2024 [Your Name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startseite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Material Icons für SAP-Fiori-ähnliche Optik -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSIjMDAzMzY2IiBkPSJNOCAwQzMuNTggMCAwIDMuNTggMCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0xIDEySDd2LTJoMnYyem0wLTRIN1Y0aDJ2NHoiLz48L3N2Zz4=" />
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #009999;
+            --accent-color: #FFB900;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --light-bg: #f7f9fa;
+            --white: #ffffff;
+            --tile-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        
+        /* Modal Styles für manuelles Anzeigen */
+        .modal.show {
+            display: block;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1040;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        .modal-backdrop.fade {
+            opacity: 0;
+        }
+
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+        
+        .modal {
+            z-index: 1050;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 12px;
+        }
+        .container-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 2rem 2rem 1.5rem 2rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+        .nav-tabs .nav-link {
+            color: var(--primary-color);
+        }
+        .tab-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 24px;
+            margin-top: 16px;
+        }
+        .action-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .action-button:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        .summary-box {
+            background: var(--accent-color);
+            color: #333;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 600px) {
+            .container-box { padding: 1rem; }
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: '72', 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .header {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 24px 0 16px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--white);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+        .seiten-titel {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-left: 1.5rem;
+        }
+        .main-container {
+            max-width: 1440px;
+            margin: 2.5rem auto 0 auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .login-container.hidden {
+            display: none !important;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .welcome-section {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding: 1rem 0;
+        }
+
+        @media (min-width: 1200px) {
+            .nav-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .nav-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 180px;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #007bff;
+        }
+
+        .nav-card h3 {
+            margin: 0;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .nav-card p {
+            margin: 0.5rem 0 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.3rem;
+            width: 100%;
+        }
+        .nav-card {
+            background: var(--white);
+            border-radius: 11px;
+            box-shadow: var(--tile-shadow);
+            padding: 1rem 0.7rem 0.7rem 0.7rem;
+            text-align: center;
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: pointer;
+            border: 1px solid #e5eaf3;
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-card:hover {
+            box-shadow: 0 8px 24px rgba(10,110,209,0.10);
+            transform: translateY(-4px) scale(1.03);
+            border-color: var(--primary-color);
+        }
+        .nav-card .icon-circle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #eaf3fc;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 2px 8px rgba(10,110,209,0.07);
+        }
+        .nav-card .icon-circle .material-icons {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        .nav-card .tile-title {
+            font-size: 1.13rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
+            margin-top: 0;
+        }
+        .nav-card .tile-desc {
+            color: #5a5d5f;
+            font-size: 0.97rem;
+            margin: 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input[type="text"],
+        input[type="password"] {
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26,59,110,0.1);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        .logout-btn {
+            background: var(--accent-color);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: #b85c00;
+        }
+        .welcome-message {
+            background-color: #ebf8ff;
+            color: var(--primary-color);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            .main-container {
+                padding: 0 1rem;
+            }
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #718096;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Debug Mode Styles */
+        .debug-mode * {
+            position: relative;
+        }
+
+        .debug-mode .container,
+        .debug-mode .container-fluid,
+        .debug-mode .main-container,
+        .debug-mode .nav-grid,
+        .debug-mode .dashboard-widgets,
+        .debug-mode .widget,
+        .debug-mode .nav-card,
+        .debug-mode .modal-content,
+        .debug-mode .tab-content,
+        .debug-mode .recent-activities {
+            border: 2px dashed #666;
+            padding: 5px;
+        }
+
+        .debug-mode .container::before,
+        .debug-mode .container-fluid::before,
+        .debug-mode .main-container::before,
+        .debug-mode .nav-grid::before,
+        .debug-mode .dashboard-widgets::before,
+        .debug-mode .widget::before,
+        .debug-mode .nav-card::before,
+        .debug-mode .modal-content::before,
+        .debug-mode .tab-content::before,
+        .debug-mode .recent-activities::before {
+            content: attr(class);
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #333;
+            color: white;
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            z-index: 1000;
+        }
+
+        .debug-mode .container { background-color: rgba(255, 182, 193, 0.2); }
+        .debug-mode .container-fluid { background-color: rgba(173, 216, 230, 0.2); }
+        .debug-mode .main-container { background-color: rgba(144, 238, 144, 0.2); }
+        .debug-mode .nav-grid { background-color: rgba(255, 218, 185, 0.2); }
+        .debug-mode .dashboard-widgets { background-color: rgba(221, 160, 221, 0.2); }
+        .debug-mode .widget { background-color: rgba(255, 255, 224, 0.2); }
+        .debug-mode .nav-card { background-color: rgba(176, 224, 230, 0.2); }
+        .debug-mode .modal-content { background-color: rgba(255, 192, 203, 0.2); }
+        .debug-mode .tab-content { background-color: rgba(240, 230, 140, 0.2); }
+        .debug-mode .recent-activities { background-color: rgba(152, 251, 152, 0.2); }
+
+        /* Debug Mode Toggle Button */
+        #debugModeToggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #debugModeToggle:hover {
+            background: #555;
+        }
+        .footer-text {
+            text-align: center;
+            color: #718096;
+            font-size: 0.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+        }
+        .help-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 120px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .help-icon:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Dashboard Widgets */
+        .dashboard-widgets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .widget {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .widget-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .widget-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0.25rem 0;
+        }
+
+        .widget-details {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .widget-details div {
+            margin-bottom: 0.25rem;
+        }
+
+        .widget-trend {
+            font-size: 0.8rem;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .widget-trend.negative {
+            color: #ef4444;
+        }
+
+        .widget .material-icons {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        /* System Status */
+        .system-status {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .status-dot.warning {
+            background: #f59e0b;
+        }
+
+        .status-dot.error {
+            background: #ef4444;
+        }
+
+        /* Notification Center */
+        .notification-center {
+            position: fixed;
+            top: 60px;
+            right: -400px;
+            width: 380px;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification-center.show {
+            right: 1rem;
+        }
+
+        .notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: var(--light-bg);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--white);
+            border: 1px solid var(--light-bg);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--light-bg);
+            border-color: var(--primary-color);
+        }
+
+        /* Recent Activities */
+        .recent-activities {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light-bg);
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* Entferne die Recent Activities Styles */
+        .recent-activities,
+        .activity-item,
+        .activity-icon,
+        .activity-content,
+        .activity-title,
+        .activity-desc,
+        .activity-time {
+            display: none;
+        }
+
+        /* Modal Styles für Admin und Support */
+        #adminModal .modal-dialog,
+        #supportModal .modal-dialog {
+            max-width: 1440px; /* Same as main-container */
+            width: 95%; /* Slight padding on very wide screens */
+            margin: 1.75rem auto;
+        }
+        
+        #adminModal .modal-content,
+        #supportModal .modal-content {
+            border-radius: 8px;
+            border: none;
+            width: 100%;
+            max-height: 90vh; /* Prevent modal from being too tall */
+            overflow-y: auto; /* Add scrolling if content is too long */
+        }
+
+        #adminModal .modal-header,
+        #supportModal .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        #adminModal .modal-title,
+        #supportModal .modal-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        #supportModal .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        #supportModal .form-label {
+            font-weight: 500;
+            color: #444;
+        }
+
+        #supportModal textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        #supportModal .alert {
+            margin-top: 1rem;
+            margin-bottom: 0;
+        }
+
+        /* Separate styles for admin modal to make it narrower */
+        #adminModal .modal-dialog {
+            max-width: 940px;
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="LOGO.svg" alt="Logo" />
+                <span>Startseite</span>
+            </a>
+            <div class="d-flex align-items-center mx-auto" style="width: 25%;">
+                <div class="input-group">
+                    <input type="text" id="globalSearch" class="form-control bg-light" placeholder="Suche... (Drücke '/')" style="border-radius: 20px 0 0 20px;">
+                    <button class="btn btn-light" type="button" id="globalSearchBtn" style="border-radius: 0 20px 20px 0;">
+                        <i class="material-icons" style="font-size: 18px;">search</i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <button id="hilfeBtn" class="btn btn-outline-light me-2">
+                    <i class="bi bi-question-circle"></i> Hilfe
+                </button>
+                <button id="supportQuickAction" class="btn btn-outline-light me-3">
+                    <i class="material-icons" style="font-size: 16px; vertical-align: text-bottom;">support</i> Support & Feedback
+                    <span id="newTicketsBadge" class="badge bg-danger ms-1" style="display: none;">0</span>
+                </button>
+                <div class="d-flex align-items-center" id="userInfo" style="gap:10px;">
+                    <img id="userAvatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiMwMDAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMzIiIHk9IjQyIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+👑</text></svg>" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                    <span id="userName" style="font-weight:500; color:#fff;">Benutzer</span>
+                </div>
+                <button id="logoutBtn" class="btn btn-outline-light ms-3" style="display: none;">Abmelden</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <!-- Login-Formular -->
+        <div id="loginForm" class="login-container">
+            <h2>Benutzeranmeldung</h2>
+            <form id="userLoginForm">
+                <input type="text" id="username" placeholder="Benutzername" required>
+                <input type="password" id="password" placeholder="Passwort" required>
+                <button type="submit">Anmelden</button>
+            </form>
+            <div id="errorMessage" class="error-message">
+                Falscher Benutzername oder Passwort!
+            </div>
+        </div>
+
+        <!-- Dashboard-Bereich (nur sichtbar nach Login) -->
+        <div id="dashboardContent" style="display: none;">
+            <!-- System Status -->
+            <div class="system-status">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>System: Online</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Datenbank: Verbunden</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions" style="display: none;">
+            </div>
+
+            <!-- Dashboard Widgets -->
+            <div class="dashboard-widgets">
+            <!-- Produktionsaufträge Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Produktionsaufträge</span>
+                    <i class="material-icons">precision_manufacturing</i>
+                </div>
+                <div class="widget-value" id="prod-total">-</div>
+                <div class="widget-details">
+                    <div>Heute fällig: <span id="prod-today">-</span></div>
+                    <div>Diese Woche: <span id="prod-week">-</span></div>
+                    <div>Dringend: <span id="prod-urgent" class="text-danger">-</span></div>
+                </div>
+            </div>
+
+            <!-- Touren Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Aktuelle Touren</span>
+                    <i class="material-icons">local_shipping</i>
+                </div>
+                <div class="widget-value" id="tours-active">-</div>
+                <div class="widget-details">
+                    <div>Fahrzeuge unterwegs: <span id="tours-vehicles">-</span></div>
+                    <div>Auslieferungen heute: <span id="tours-deliveries">-</span></div>
+                    <div>Kilometer heute: <span id="tours-km">-</span></div>
+                </div>
+            </div>
+
+            <!-- Lieferanten Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Lieferanten</span>
+                    <i class="material-icons">local_shipping</i>
+                </div>
+                <div class="widget-value" id="supplier-total">-</div>
+                <div class="widget-details">
+                    <div>Aktive Lieferanten: <span id="supplier-active" class="text-success">-</span></div>
+                    <div>Produktgruppen: <span id="supplier-products">-</span></div>
+                    <div>Top Rating: <span id="supplier-rating" class="text-primary">-</span></div>
+                </div>
+            </div>
+
+            <!-- Kalkulationen Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Kalkulationen</span>
+                    <i class="material-icons">calculate</i>
+                </div>
+                <div class="widget-value" id="calc-total">-</div>
+                <div class="widget-details">
+                    <div>Heute erstellt: <span id="calc-today">-</span></div>
+                    <div>Angenommen: <span id="calc-accepted" class="text-success">-</span></div>
+                    <div>In Bearbeitung: <span id="calc-pending">-</span></div>
+                </div>
+            </div>
+
+            <!-- Termine & Aufgaben Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Termine & Aufgaben</span>
+                    <i class="material-icons">event</i>
+                </div>
+                <div class="widget-value" id="tasks-total">-</div>
+                <div class="widget-details">
+                    <div>Heute fällig: <span id="tasks-today" class="text-danger">-</span></div>
+                    <div>Diese Woche: <span id="tasks-week">-</span></div>
+                    <div>Wartungen geplant: <span id="tasks-maintenance">-</span></div>
+                </div>
+            </div>
+
+            <!-- Aktivitäts-Widget entfernen -->
+        </div>
+
+        <div class="nav-links" id="navLinks">
+            <div class="nav-grid">
+                <a href="Kalkulation.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">calculate</span></div>
+                    <div class="tile-title">Kalkulation</div>
+                    <div class="tile-desc">Berechnen Sie Ihre Kosten mit unserem professionellen Kalkulationstool</div>
+                </a>
+                <a href="EPS.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">view_in_ar</span></div>
+                    <div class="tile-title">EPS-Berechnung</div>
+                    <div class="tile-desc">Optimieren Sie Ihre EPS-Produktion mit unserem spezialisierten Tool</div>
+                </a>
+                <a href="Drucker.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">print</span></div>
+                    <div class="tile-title">Digitaler Verpackungsdruck</div>
+                    <div class="tile-desc">Kalkulieren Sie die Kosten für digitalen Verpackungsdruck</div>
+                </a>
+                <a href="Plotter.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">content_cut</span></div>
+                    <div class="tile-title">Verpackungsplotter</div>
+                    <div class="tile-desc">Berechnen Sie die Kosten für das Schneiden und Rillen von Verpackungen</div>
+                </a>
+                <a href="Zuschnitte.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">crop</span></div>
+                    <div class="tile-title">Zuschnitte</div>
+                    <div class="tile-desc">Kalkulation und Preisermittlung für Zuschnitte</div>
+                </a>
+                <a href="Produktion.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">factory</span></div>
+                    <div class="tile-title">Produktionsaufträge</div>
+                    <div class="tile-desc">Verwalten Sie Ihre Produktionsaufträge und das Archiv zentral</div>
+                </a>
+                <a href="Palettenkonto.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">inventory_2</span></div>
+                    <div class="tile-title">Palettenkonto</div>
+                    <div class="tile-desc">Verwalten Sie Palettenbewegungen, Konten und Auswertungen</div>
+                </a>
+                <a href="Aufgabe.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">assignment</span></div>
+                    <div class="tile-title">Aufgaben</div>
+                    <div class="tile-desc">Verwalten Sie Ihre Aufgaben zentral im Netzwerk</div>
+                </a>
+                <a href="Tourenplaner.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">route</span></div>
+                    <div class="tile-title">Tourenplanung</div>
+                    <div class="tile-desc">Optimieren Sie Ihre Routen und planen Sie Lieferungen effizient</div>
+                </a>
+                <a href="G-Code.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">code</span></div>
+                    <div class="tile-title">G-Code Generator</div>
+                    <div class="tile-desc">Erstellen und exportieren Sie G-Code für CNC-Anwendungen</div>
+                </a>
+                <a href="unternehmensplaner.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">business</span></div>
+                    <div class="tile-title">Unternehmensplanung</div>
+                    <div class="tile-desc">Zentrale Verwaltung von Aufgaben, Fahrzeugen, Zertifikaten und Terminen</div>
+                </a>
+                <a href="Lieferant.html" class="nav-card" style="text-decoration:none;">
+                    <div class="icon-circle"><span class="material-icons">local_shipping</span></div>
+                    <div class="tile-title">Lieferanten</div>
+                    <div class="tile-desc">Verwaltung und Übersicht aller Lieferanten und deren Produkte</div>
+                </a>
+                <a href="#" id="adminAreaBtn" class="nav-card" style="text-decoration:none; display:flex;">
+                    <div class="icon-circle"><span class="material-icons">admin_panel_settings</span></div>
+                    <div class="tile-title">Adminbereich</div>
+                    <div class="tile-desc">Benutzerverwaltung & Rechte</div>
+                </a>
+            </div>
+        </div>
+        </div><!-- Ende des Dashboard-Bereichs -->
+    </main>
+
+    <div class="version">Version 1.5.0</div>
+
+    <!-- Globales Suchmodal -->
+    <div class="modal fade" id="searchModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Suchergebnisse</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="nav nav-tabs mb-3">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modulesTab">Module</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ticketsTab">Support-Tickets</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tasksTab">Aufgaben</button>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="modulesTab">
+                            <div id="moduleResults" class="list-group">
+                                <!-- Module Ergebnisse -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="ticketsTab">
+                            <div id="ticketResults" class="list-group">
+                                <!-- Ticket Ergebnisse -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tasksTab">
+                            <div id="taskResults" class="list-group">
+                                <!-- Aufgaben Ergebnisse -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debug Mode Toggle Button -->
+    <button id="debugModeToggle" onclick="toggleDebugMode()">Debug Mode: Off</button>
+
+    <div class="modal" id="adminModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Benutzerverwaltung</h5>
+                    <button type="button" class="btn-close" onclick="closeAdminModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs für verschiedene Verwaltungsbereiche -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#benutzerTab" type="button" role="tab">Benutzer</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#gruppenTab" type="button" role="tab">Gruppen</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#rechteTab" type="button" role="tab">Rechte</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#auditTab" type="button" role="tab">Audit-Log</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#supportTab" type="button" role="tab">Support-Tickets</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <!-- Benutzer Tab -->
+                        <div class="tab-pane fade show active" id="benutzerTab" role="tabpanel">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Benutzerliste</h6>
+                                <button class="btn btn-primary btn-sm" onclick="openNeuerBenutzerModal()">Neuer Benutzer</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table" id="benutzerTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Rolle</th>
+                                            <th>Rechte</th>
+                                            <th>Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Wird dynamisch gefüllt -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Gruppen Tab -->
+                        <div class="tab-pane fade" id="gruppenTab" role="tabpanel">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Benutzergruppen</h6>
+                                <button class="btn btn-primary btn-sm" onclick="clearGruppenForm()">Neue Gruppe</button>
+                            </div>
+                            <div id="gruppenListe"></div>
+                        </div>
+
+                        <!-- Rechte Tab -->
+                        <div class="tab-pane fade" id="rechteTab" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Recht</th>
+                                            <th>Beschreibung</th>
+                                            <th>Benutzer</th>
+                                            <th>Gruppen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Wird dynamisch gefüllt -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Audit Log Tab -->
+                        <div class="tab-pane fade" id="auditTab" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Zeitpunkt</th>
+                                            <th>Benutzer</th>
+                                            <th>Aktion</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Wird dynamisch gefüllt -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Support Tickets Tab -->
+                        <div class="tab-pane fade" id="supportTab" role="tabpanel">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Support-Tickets</h6>
+                                <div>
+                                    <button class="btn btn-sm btn-success me-2" onclick="exportSupportTickets()">
+                                        <i class="bi bi-download"></i> Exportieren
+                                    </button>
+                                    <select class="form-select form-select-sm d-inline-block w-auto" id="ticketStatusFilter" onchange="loadSupportTickets()">
+                                        <option value="all">Alle Status</option>
+                                        <option value="new">Neu</option>
+                                        <option value="in_progress">In Bearbeitung</option>
+                                        <option value="resolved">Erledigt</option>
+                                        <option value="closed">Geschlossen</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="supportTicketsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Typ</th>
+                                            <th>Titel</th>
+                                            <th>Beschreibung</th>
+                                            <th>Priorität</th>
+                                            <th>Status</th>
+                                            <th>Benutzer</th>
+                                            <th>Datum</th>
+                                            <th>Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Wird dynamisch gefüllt -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hilfe-Modal -->
+    <div class="modal fade" id="hilfeModal" tabindex="-1" aria-labelledby="hilfeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hilfeModalLabel"><i class="bi bi-question-circle me-2"></i>Hilfe zur Startseite</h5>
+                    <button type="button" class="btn-close" onclick="
+                        var hilfeModal = document.getElementById('hilfeModal');
+                        hilfeModal.style.display = 'none';
+                        hilfeModal.classList.remove('show');
+                    " aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>Willkommen bei unserer Unternehmensanwendung</h4>
+                    <p>Über diese Startseite können Sie auf verschiedene Anwendungsmodule zugreifen.</p>
+                    
+                    <div class="accordion" id="hilfeAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Anmeldung und Navigation
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#hilfeAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Geben Sie Ihren Benutzernamen und Ihr Passwort ein, um sich anzumelden.</li>
+                                        <li>Nach erfolgreicher Anmeldung werden die für Sie verfügbaren Module als Kacheln angezeigt.</li>
+                                        <li>Klicken Sie auf eine Kachel, um zum entsprechenden Modul zu gelangen.</li>
+                                        <li>Sie können sich jederzeit über den Abmelde-Button abmelden.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Verfügbare Module
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#hilfeAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li><strong>Kalkulation:</strong> Berechnen Sie Ihre Kosten mit unserem professionellen Kalkulationstool</li>
+                                        <li><strong>EPS-Berechnung:</strong> Optimieren Sie Ihre EPS-Produktion mit unserem spezialisierten Tool</li>
+                                        <li><strong>Digitaler Verpackungsdruck:</strong> Kalkulieren Sie die Kosten für digitalen Verpackungsdruck</li>
+                                        <li><strong>Verpackungsplotter:</strong> Berechnen Sie die Kosten für das Schneiden und Rillen von Verpackungen</li>
+                                        <li><strong>Aufgaben:</strong> Verwalten Sie Ihre Aufgaben zentral im Netzwerk</li>
+                                        <li><strong>Produktionsaufträge:</strong> Verwalten Sie Ihre Produktionsaufträge und das Archiv zentral</li>
+                                        <li><strong>Palettenkonto:</strong> Verwalten Sie Palettenbewegungen, Konten und Auswertungen</li>
+                                        <li><strong>Zuschnitte:</strong> Kalkulation und Preisermittlung für Zuschnitte</li>
+                                        <li><strong>Entfernung:</strong> Berechnen Sie die Straßenentfernung zu Kunden</li>
+                                    </ul>
+                                    <p><em>Hinweis: Je nach Ihren Benutzerrechten können einige Module für Sie nicht verfügbar sein.</em></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    Adminbereich
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#hilfeAccordion">
+                                <div class="accordion-body">
+                                    <p>Der Adminbereich ist nur für Benutzer mit Administratorrechten verfügbar.</p>
+                                    <ol>
+                                        <li>Hier können Sie Benutzer verwalten und anlegen.</li>
+                                        <li>Sie können Benutzerrechte festlegen, um den Zugriff auf bestimmte Module zu steuern.</li>
+                                        <li>Benutzerkonten können bearbeitet oder gelöscht werden.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    Tipps und Hinweise
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#hilfeAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li><strong>Sitzungsdauer:</strong> Aus Sicherheitsgründen werden Sie nach längerer Inaktivität automatisch abgemeldet.</li>
+                                        <li><strong>Browser:</strong> Für die optimale Nutzung empfehlen wir aktuelle Versionen von Chrome, Firefox oder Edge.</li>
+                                        <li><strong>Zurück zur Startseite:</strong> Sie können von jedem Modul aus über die "Zurück zur Startseite"-Schaltfläche zur Startseite zurückkehren.</li>
+                                        <li><strong>Hilfe in Modulen:</strong> Jedes Modul verfügt über eine eigene Hilfeseite mit spezifischen Anleitungen.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                    Server-Installation und Wartung
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#hilfeAccordion">
+                                <div class="accordion-body">
+                                    <h4>Installation</h4>
+                                    <p>Der Node.js-Server wurde als Windows-Dienst mit NSSM (Non-Sucking Service Manager) eingerichtet:</p>
+                                    <ul>
+                                        <li>Das Node.js-Script (server.js) liegt sowohl auf Y:\Verwaltung\Software\Kalkulation als auch lokal unter C:\NodeServer</li>
+                                        <li>Der Dienst "MeinServer" wurde mit NSSM installiert und läuft automatisch beim Systemstart</li>
+                                        <li>Die Datenbanken liegen weiterhin auf dem Netzlaufwerk Y:\</li>
+                                    </ul>
+                                    
+                                    <h4>Wartung und Änderungen</h4>
+                                    <p><strong>Wichtig:</strong> Bei Änderungen am Server-Code müssen beide Dateien aktualisiert werden:</p>
+                                    <ol>
+                                        <li>Änderungen an Y:\Verwaltung\Software\Kalkulation\server.js vornehmen</li>
+                                        <li>Die gleichen Änderungen auch in C:\NodeServer\server.js übernehmen</li>
+                                        <li>Den Dienst neu starten mit dem Befehl: C:\NSSM\nssm.exe restart MeinServer</li>
+                                    </ol>
+                                    
+                                    <h4>Neue Module installieren</h4>
+                                    <p>Falls neue Node.js-Module benötigt werden:</p>
+                                    <ol>
+                                        <li>Kommandozeile öffnen und zu C:\NodeServer navigieren</li>
+                                        <li>Modul installieren mit: npm install modulname</li>
+                                        <li>Den Dienst neu starten mit: C:\NSSM\nssm.exe restart MeinServer</li>
+                                    </ol>
+                                    
+                                    <h4>Fehlerbehebung</h4>
+                                    <p>Falls der Dienst nicht startet:</p>
+                                    <ul>
+                                        <li>Log-Dateien prüfen: C:\NodeServer\stdout.log und C:\NodeServer\stderr.log</li>
+                                        <li>Dienststatus prüfen mit: C:\NSSM\nssm.exe status MeinServer</li>
+                                        <li>Bei Problemen mit der Serververbindung prüfen, ob der Dienst läuft (Windows-Dienste)</li>
+                                    </ul>
+                                    
+                                    <p><em>Diese Konfiguration wurde am 15.05.2024 eingerichtet.</em></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="
+                        var hilfeModal = document.getElementById('hilfeModal');
+                        hilfeModal.style.display = 'none';
+                        hilfeModal.classList.remove('show');
+                    ">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Neuer Benutzer Modal -->
+    <div class="modal fade" id="neuerBenutzerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neuer Benutzer</h5>
+                    <button type="button" class="btn-close" onclick="closeNeuerBenutzerModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="neuerBenutzerForm">
+                        <div class="mb-3">
+                            <label for="neuerBenutzerName" class="form-label">Benutzername</label>
+                            <input type="text" class="form-control" id="neuerBenutzerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="neuerBenutzerPasswort" class="form-label">Passwort</label>
+                            <input type="password" class="form-control" id="neuerBenutzerPasswort" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="benutzerRolle" class="form-label">Rolle</label>
+                            <select class="form-select" id="benutzerRolle" required>
+                                <option value="user">Benutzer</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rechte</label>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="rechteAlle" onchange="toggleAlleRechte(this)">
+                                <label class="form-check-label" for="rechteAlle">Alle Rechte</label>
+                            </div>
+                            <div id="rechteCheckboxes">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="rechteTourenplaner" name="rechte" value="Tourenplaner.html">
+                                    <label class="form-check-label" for="rechteTourenplaner">Tourenplaner</label>
+                                </div>
+                                <!-- Wird dynamisch gefüllt -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeNeuerBenutzerModal()">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNeuerBenutzer()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Center -->
+    <div class="notification-center" id="notificationCenter">
+        <div class="notification-header">
+            <h3>Benachrichtigungen</h3>
+            <button class="btn btn-sm btn-link" onclick="clearNotifications()">Alle lesen</button>
+        </div>
+        <div class="notification-list">
+            <div class="notification-item">
+                <div class="notification-title">System-Update verfügbar</div>
+                <div class="notification-desc">Eine neue Version (1.5.1) ist verfügbar.</div>
+                <div class="notification-time">Vor 10 Minuten</div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-title">Backup abgeschlossen</div>
+                <div class="notification-desc">Tägliches Backup wurde erfolgreich erstellt.</div>
+                <div class="notification-time">Vor 2 Stunden</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div class="modal fade" id="supportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="material-icons align-middle me-2">support</i>Support & Feedback</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supportForm">
+                        <div class="mb-3">
+                            <label for="supportType" class="form-label">Art des Feedbacks</label>
+                            <select class="form-select" id="supportType" required>
+                                <option value="">Bitte wählen...</option>
+                                <option value="verbesserung">Verbesserungsvorschlag</option>
+                                <option value="fehler">Fehlermeldung</option>
+                                <option value="funktion">Neue Funktion</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="supportTitle" class="form-label">Kurzbeschreibung</label>
+                            <input type="text" class="form-control" id="supportTitle" required 
+                                   placeholder="Kurzer Titel für Ihr Anliegen">
+                        </div>
+                        <div class="mb-3">
+                            <label for="supportDescription" class="form-label">Beschreibung</label>
+                            <textarea class="form-control" id="supportDescription" rows="4" required
+                                    placeholder="Beschreiben Sie Ihr Anliegen detailliert..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="supportPriority" class="form-label">Priorität</label>
+                            <select class="form-select" id="supportPriority" required>
+                                <option value="low">Niedrig</option>
+                                <option value="medium" selected>Mittel</option>
+                                <option value="high">Hoch</option>
+                            </select>
+                        </div>
+                    </form>
+                    <div id="supportSuccess" class="alert alert-success d-none">
+                        Vielen Dank für Ihr Feedback! Wir werden es schnellstmöglich bearbeiten.
+                    </div>
+                    <div id="supportError" class="alert alert-danger d-none">
+                        Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="submitSupportForm()">Absenden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        // API-Basis-URL definieren und validieren
+        const API_BASE_URL = window.location.protocol === 'file:' 
+            ? 'http://localhost:5050'  // Lokale Entwicklung
+            : window.location.origin;  // Produktionsumgebung
+        
+        console.log('Verwende API-Basis-URL:', API_BASE_URL);
+
+        // Debug Mode Toggle Function
+        function toggleDebugMode() {
+            const body = document.body;
+            const button = document.getElementById('debugModeToggle');
+            body.classList.toggle('debug-mode');
+            button.textContent = body.classList.contains('debug-mode') ? 'Debug Mode: On' : 'Debug Mode: Off';
+        }
+
+        // Beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prüfe, ob ein Benutzer in der Session ist
+            const userData = sessionStorage.getItem('currentUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                showLoggedInState(user);
+                initializeDashboard();
+            } else {
+                showLoggedOutState();
+            }
+
+            // Admin-Button Setup
+            const adminBtn = document.getElementById('adminAreaBtn');
+            if (adminBtn) {
+                adminBtn.onclick = function(e) {
+                    e.preventDefault();
+                    openAdminModal();
+                };
+            }
+        });
+
+        // Login-Handler
+        document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                console.log('Server-Antwort Status:', response.status);
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Login-Fehler:', errorData);
+                    throw new Error('Login fehlgeschlagen');
+                }
+
+                const data = await response.json();
+                console.log('Rohe Server-Antwort:', data);
+                
+                if (data && data.user) {
+                    console.log('Benutzer-Objekt:', data.user);
+                    console.log('Benutzerrechte:', data.user.rights);
+                    sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+                    showLoggedInState(data.user);
+                    initializeDashboard();
+                } else {
+                    console.error('Ungültiges Benutzer-Objekt:', data);
+                    throw new Error('Ungültige Server-Antwort');
+                }
+            } catch (error) {
+                console.error('Login-Fehler:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+
+        function updateSessionCount() {
+            // Diese Funktion ist jetzt deaktiviert, da das Element nicht mehr verwendet wird
+            return;
+        }
+
+        function showLoggedInState(user) {
+            if (!user) {
+                console.error('Keine Benutzerdaten übergeben');
+                return;
+            }
+
+            console.log('Zeige eingeloggten Zustand für Benutzer:', user);
+
+            // Login-Form ausblenden
+            const loginForm = document.getElementById('loginForm');
+            loginForm.classList.add('hidden');
+            loginForm.style.display = 'none';
+
+            // Dashboard einblenden
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('navLinks').style.display = 'flex';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userName').textContent = user.name || user.username;
+
+            // Aktualisiere die Sitzungszahl
+            updateSessionCount();
+
+            // LEGO Avatar setzen
+            const avatarImg = document.getElementById('userAvatar');
+            if (avatarImg) {
+                const avatarUrl = getLegoAvatar(user);
+                avatarImg.onerror = function() {
+                    this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiNGRkQ3MDAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMzIiIHk9IjQyIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+8J+NqTwvdGV4dD48L3N2Zz4=';
+                };
+                avatarImg.src = avatarUrl;
+            }
+
+            // Kacheln basierend auf Benutzerrechten anzeigen/verstecken
+            document.querySelectorAll('.nav-card').forEach(card => {
+                card.style.display = 'none';
+            });
+
+            if (user.role === 'admin') {
+                // Admin sieht alle Kacheln
+                document.querySelectorAll('.nav-card').forEach(card => {
+                    card.style.display = 'flex';
+                });
+                if (document.getElementById('adminAreaBtn')) {
+                    document.getElementById('adminAreaBtn').style.display = 'flex';
+                }
+            } else if (user.rights && Array.isArray(user.rights)) {
+                // Normale Benutzer sehen nur ihre berechtigten Kacheln
+                document.querySelectorAll('.nav-card').forEach(card => {
+                    const href = card.getAttribute('href');
+                    if (href && user.rights.includes(href)) {
+                        card.style.display = 'flex';
+                    }
+                });
+                if (document.getElementById('adminAreaBtn')) {
+                    document.getElementById('adminAreaBtn').style.display = 'none';
+                }
+            }
+        }
+
+        function showLoggedOutState() {
+            // Login-Form einblenden
+            const loginForm = document.getElementById('loginForm');
+            loginForm.classList.remove('hidden');
+            loginForm.style.display = 'block';
+
+            // Dashboard ausblenden
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('navLinks').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('userName').textContent = 'Benutzer';
+            document.getElementById('userLoginForm').reset();
+            document.getElementById('errorMessage').style.display = 'none';
+
+            // Setze die Sitzungszahl zurück
+            document.querySelectorAll('.stat-value').forEach(element => {
+                if (element.closest('.stat-item').querySelector('.stat-label').textContent.includes('Aktive Sitzungen')) {
+                    element.textContent = '0';
+                }
+            });
+        }
+
+        // Logout-Handler
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            // Session-Daten löschen
+            sessionStorage.removeItem('currentUser');
+            showLoggedOutState();
+        });
+
+        // LEGO Avatar-Zuordnung
+        function getLegoAvatar(userData) {
+            // Farben für Avatare
+            const avatarColors = [
+                '#e74c3c', // rot (Admin)
+                '#f1c40f', // gelb
+                '#3498db', // blau
+                '#2ecc71', // grün
+                '#9b59b6', // lila
+                '#e67e22', // orange
+                '#1abc9c', // türkis
+                '#34495e', // dunkelblau
+                '#fd79a8', // pink
+                '#00b894', // smaragd
+                '#636e72', // grau
+                '#fdcb6e', // gold
+                '#00cec9', // hellblau
+                '#6c5ce7', // violett
+                '#b2bec3', // silber
+                '#d35400', // dunkelorange
+                '#0984e3', // royalblau
+                '#00b894', // grün 2
+                '#e17055', // koralle
+                '#fab1a0'  // pfirsich
+            ];
+
+            const username = userData.username || userData.name || 'default';
+            let color = avatarColors[1];
+            let initial = (userData.name || userData.username || '?').charAt(0).toUpperCase();
+            if (userData.role === 'admin' || username.toLowerCase() === 'admin') {
+                color = avatarColors[0];
+                initial = 'A';
+            } else {
+                let identifier = userData.id || userData.username || userData.name || 'default';
+                if (identifier === 'default' || !identifier) {
+                    identifier = 'user_' + Date.now();
+                }
+                let hash = 0;
+                const str = String(identifier).toLowerCase();
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                hash = Math.abs(hash);
+                if (hash === 0) hash = 1;
+                const colorIndex = (hash % (avatarColors.length - 1)) + 1; // 0 ist Admin
+                color = avatarColors[colorIndex];
+            }
+            // SVG: farbiger Kreis mit Initiale
+            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><circle cx='32' cy='32' r='30' fill='${color}' stroke='white' stroke-width='3'/><text x='32' y='44' font-size='28' text-anchor='middle' fill='white' font-family='Arial'>${initial}</text></svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
+        // Admin-Bereich Funktionen
+        async function openAdminModal() {
+            const modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                document.body.classList.add('modal-open');
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+                
+                // Benutzer-Liste und Support-Tickets laden
+                await Promise.all([
+                    loadUsers(),
+                    loadSupportTickets()
+                ]);
+            }
+        }
+
+        // Support-Ticket-Funktionen
+        async function loadSupportTickets() {
+            try {
+                const statusFilter = document.getElementById('ticketStatusFilter').value;
+                const url = statusFilter === 'all' 
+                    ? `${API_BASE_URL}/api/support/tickets`
+                    : `${API_BASE_URL}/api/support/tickets?status=${statusFilter}`;
+                
+                const response = await fetch(url);
+                const tickets = await response.json();
+                
+                const tbody = document.querySelector('#supportTicketsTable tbody');
+                tbody.innerHTML = '';
+                
+                tickets.forEach(ticket => {
+                    const tr = document.createElement('tr');
+                    tr.className = getPriorityClass(ticket.priority);
+                    tr.innerHTML = `
+                        <td>${ticket.id}</td>
+                        <td>${getTicketTypeIcon(ticket.type)} ${ticket.type}</td>
+                        <td>${ticket.title}</td>
+                        <td>${ticket.description}</td>
+                        <td>${getPriorityBadge(ticket.priority)}</td>
+                        <td>${getStatusBadge(ticket.status)}</td>
+                        <td>${ticket.user}</td>
+                        <td>${formatDate(ticket.timestamp)}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="updateTicketStatus(${ticket.id}, 'in_progress')" title="In Bearbeitung">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                                <button class="btn btn-outline-success" onclick="updateTicketStatus(${ticket.id}, 'resolved')" title="Erledigt">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="updateTicketStatus(${ticket.id}, 'closed')" title="Schließen">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteTicket(${ticket.id})" title="Löschen">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Support-Tickets:', error);
+                alert('Fehler beim Laden der Support-Tickets');
+            }
+        }
+
+        function getTicketTypeIcon(type) {
+            const icons = {
+                'fehler': '<i class="bi bi-bug text-danger"></i>',
+                'verbesserung': '<i class="bi bi-arrow-up-circle text-primary"></i>',
+                'funktion': '<i class="bi bi-plus-circle text-success"></i>'
+            };
+            return icons[type] || '<i class="bi bi-question-circle"></i>';
+        }
+
+        function getPriorityBadge(priority) {
+            const badges = {
+                'high': '<span class="badge bg-danger">Hoch</span>',
+                'medium': '<span class="badge bg-warning">Mittel</span>',
+                'low': '<span class="badge bg-info">Niedrig</span>'
+            };
+            return badges[priority] || '<span class="badge bg-secondary">Unbekannt</span>';
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                'new': '<span class="badge bg-primary">Neu</span>',
+                'in_progress': '<span class="badge bg-warning">In Bearbeitung</span>',
+                'resolved': '<span class="badge bg-success">Erledigt</span>',
+                'closed': '<span class="badge bg-secondary">Geschlossen</span>'
+            };
+            return badges[status] || '<span class="badge bg-secondary">Unbekannt</span>';
+        }
+
+        function getPriorityClass(priority) {
+            const classes = {
+                'high': 'table-danger',
+                'medium': 'table-warning',
+                'low': ''
+            };
+            return classes[priority] || '';
+        }
+
+        async function updateTicketStatus(ticketId, newStatus) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support/tickets/${ticketId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        status: newStatus 
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler beim Aktualisieren des Status');
+                }
+
+                // Aktualisiere die Tabelle
+                await loadSupportTickets();
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren des Ticket-Status:', error);
+                alert('Fehler beim Aktualisieren des Status');
+            }
+        }
+
+        async function deleteTicket(ticketId) {
+            if (!confirm('Möchten Sie dieses Support-Ticket wirklich löschen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support/tickets/${ticketId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler beim Löschen des Tickets');
+                }
+
+                // Aktualisiere die Tabelle
+                await loadSupportTickets();
+            } catch (error) {
+                console.error('Fehler beim Löschen des Tickets:', error);
+                alert('Fehler beim Löschen des Tickets');
+            }
+        }
+
+        async function exportSupportTickets() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support/tickets/export`);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `support-tickets-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            } catch (error) {
+                console.error('Fehler beim Exportieren der Tickets:', error);
+                alert('Fehler beim Exportieren der Tickets');
+            }
+        }
+
+        function formatDate(timestamp) {
+            return new Date(timestamp).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users`);
+                const users = await response.json();
+                const tbody = document.querySelector('#benutzerTable tbody');
+                tbody.innerHTML = '';
+                
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.role}</td>
+                        <td style="font-size: 1.2em;">${getRechteIcons(user.rights)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})" ${user.username === 'admin' ? 'disabled' : ''}>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+                alert('Fehler beim Laden der Benutzer');
+            }
+        }
+
+        // Icon-Map für die Rechte
+        const rechteIcons = {
+            'Kalkulation.html': '<i class="bi bi-calculator" title="Kalkulation"></i>',
+            'EPS.html': '<i class="bi bi-box" title="EPS-Berechnung"></i>',
+            'Drucker.html': '<i class="bi bi-printer" title="Digitaler Verpackungsdruck"></i>',
+            'Plotter.html': '<i class="bi bi-scissors" title="Verpackungsplotter"></i>',
+            'Zuschnitte.html': '<i class="bi bi-crop" title="Zuschnitte"></i>',
+            'Produktion.html': '<i class="bi bi-gear-wide-connected" title="Produktionsaufträge"></i>',
+            'Palettenkonto.html': '<i class="bi bi-stack" title="Palettenkonto"></i>',
+            'Aufgabe.html': '<i class="bi bi-list-task" title="Aufgaben"></i>',
+            'Tourenplaner.html': '<i class="bi bi-truck" title="Tourenplaner"></i>',
+            'Entfernung.html': '<i class="bi bi-geo-alt" title="Entfernung"></i>',
+            'G-Code.html': '<i class="bi bi-code-slash" title="G-Code Generator"></i>',
+            'unternehmensplaner.html': '<i class="bi bi-building" title="Unternehmensplanung"></i>',
+            'Lieferant.html': '<i class="bi bi-truck" title="Lieferanten"></i>'
+        };
+
+        function getRechteIcons(rechte) {
+            if (!rechte) return '';
+            return rechte.map(recht => rechteIcons[recht] || '').join(' ');
+        }
+
+        // Admin-Bereich Funktionen
+        function closeAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        }
+
+        function closeNeuerBenutzerModal() {
+            const modal = document.getElementById('neuerBenutzerModal');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+
+        function openNeuerBenutzerModal() {
+            const modal = document.getElementById('neuerBenutzerModal');
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            
+            // Rechte-Checkboxes dynamisch erstellen
+            const rechteContainer = document.getElementById('rechteCheckboxes');
+            rechteContainer.innerHTML = '';
+            
+            const verfügbareRechte = [
+                'Kalkulation.html',
+                'EPS.html',
+                'Drucker.html',
+                'Plotter.html',
+                'Zuschnitte.html',
+                'Produktion.html',
+                'Palettenkonto.html',
+                'Aufgabe.html',
+                'Tourenplaner.html',
+                'G-Code.html',
+                'unternehmensplaner.html',
+                'Lieferant.html'
+            ];
+            
+            verfügbareRechte.forEach(recht => {
+                const div = document.createElement('div');
+                div.className = 'form-check';
+                const rechtName = recht === 'Lieferant.html' ? 'Lieferanten' :
+                                recht.replace('.html', '');
+                div.innerHTML = `
+                    <input type="checkbox" class="form-check-input" id="recht_${recht}" name="rechte" value="${recht}">
+                    <label class="form-check-label" for="recht_${recht}">${rechtName}</label>
+                `;
+                rechteContainer.appendChild(div);
+            });
+        }
+
+        function toggleAlleRechte(checkbox) {
+            const rechteCheckboxes = document.querySelectorAll('#rechteCheckboxes input[type="checkbox"]');
+            rechteCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        async function saveNeuerBenutzer() {
+            const username = document.getElementById('neuerBenutzerName').value;
+            const password = document.getElementById('neuerBenutzerPasswort').value;
+            const role = document.getElementById('benutzerRolle').value;
+            
+            // Ausgewählte Rechte sammeln
+            const rechteCheckboxes = document.querySelectorAll('#rechteCheckboxes input[type="checkbox"]:checked');
+            const rights = Array.from(rechteCheckboxes).map(cb => cb.value);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        role,
+                        rights
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler beim Speichern des Benutzers');
+                }
+
+                await loadUsers(); // Benutzerliste neu laden
+                closeNeuerBenutzerModal();
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Speichern des Benutzers');
+            }
+        }
+
+        async function editUser(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
+                const user = await response.json();
+                
+                // Benutzer-Modal mit den Daten füllen
+                document.getElementById('neuerBenutzerName').value = user.username;
+                document.getElementById('neuerBenutzerPasswort').value = '';  // Passwort leer lassen
+                document.getElementById('benutzerRolle').value = user.role;
+                
+                // Rechte setzen
+                document.querySelectorAll('#rechteCheckboxes input[type="checkbox"]').forEach(cb => {
+                    cb.checked = user.rights.includes(cb.value);
+                });
+                
+                // Modal öffnen
+                openNeuerBenutzerModal();
+                
+                // Speichern-Button-Handler anpassen
+                const saveButton = document.querySelector('#neuerBenutzerModal .btn-primary');
+                saveButton.onclick = () => updateUser(userId);
+            } catch (error) {
+                console.error('Fehler beim Laden des Benutzers:', error);
+                alert('Fehler beim Laden des Benutzers');
+            }
+        }
+
+        async function updateUser(userId) {
+            const username = document.getElementById('neuerBenutzerName').value;
+            const password = document.getElementById('neuerBenutzerPasswort').value;
+            const role = document.getElementById('benutzerRolle').value;
+            const rechteCheckboxes = document.querySelectorAll('#rechteCheckboxes input[type="checkbox"]:checked');
+            const rights = Array.from(rechteCheckboxes).map(cb => cb.value);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password: password || undefined,  // Nur senden wenn nicht leer
+                        role,
+                        rights
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler beim Aktualisieren des Benutzers');
+                }
+
+                await loadUsers();
+                closeNeuerBenutzerModal();
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Aktualisieren des Benutzers');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Möchten Sie diesen Benutzer wirklich löschen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler beim Löschen des Benutzers');
+                }
+
+                await loadUsers();
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Löschen des Benutzers');
+            }
+        }
+
+        // Neue Funktionen für die Widgets
+        function toggleNotifications() {
+            const notificationCenter = document.getElementById('notificationCenter');
+            notificationCenter.classList.toggle('show');
+        }
+
+        function clearNotifications() {
+            // Implementierung für das Löschen von Benachrichtigungen
+        }
+
+        // Automatische Widget-Updates
+        setInterval(() => {
+            // Hier können Sie die Widget-Daten aktualisieren
+            // Beispiel: Systemauslastung aktualisieren
+        }, 60000); // Alle 60 Sekunden
+
+        // Event-Listener für Quick-Actions
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Implementierung der Quick-Actions
+                console.log('Quick Action clicked:', this.textContent.trim());
+            });
+        });
+
+        // Dashboard-Daten laden
+        async function loadDashboardData() {
+            try {
+                const updateWidget = async (endpoint, updates) => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const data = await response.json();
+                        Object.entries(updates).forEach(([id, transform]) => {
+                            const element = document.getElementById(id);
+                            if (element) {
+                                const value = transform(data);
+                                element.textContent = value !== undefined && value !== null ? value : '-';
+                            }
+                        });
+                    } catch (error) {
+                        console.error(`Fehler beim Laden von ${endpoint}:`, error);
+                        Object.keys(updates).forEach(id => {
+                            const element = document.getElementById(id);
+                            if (element) element.textContent = '-';
+                        });
+                    }
+                };
+
+                // Produktionsaufträge
+                await updateWidget('/api/produktion/stats', {
+                    'prod-total': data => data.total,
+                    'prod-today': data => data.dueToday,
+                    'prod-week': data => data.dueThisWeek,
+                    'prod-urgent': data => data.urgent
+                });
+
+                // Touren
+                await updateWidget('/api/touren/stats', {
+                    'tours-active': data => data.activeRoutes,
+                    'tours-vehicles': data => data.vehiclesOnRoute,
+                    'tours-deliveries': data => data.deliveriesToday,
+                    'tours-km': data => data.kmToday ? `${data.kmToday} km` : '-'
+                });
+
+                // Lieferanten
+                await updateWidget('/api/lieferanten/stats', {
+                    'supplier-total': data => data.total,
+                    'supplier-active': data => data.active,
+                    'supplier-products': data => data.productGroups,
+                    'supplier-rating': data => data.topRating ? `${data.topRating} von 5` : '-'
+                });
+
+                // Kalkulationen
+                await updateWidget('/api/kalkulation/stats', {
+                    'calc-total': data => data.totalCalculations,
+                    'calc-today': data => data.createdToday,
+                    'calc-accepted': data => data.accepted,
+                    'calc-pending': data => data.pending
+                });
+
+                // Termine & Aufgaben
+                await updateWidget('/api/planer/stats', {
+                    'tasks-total': data => data.totalTasks,
+                    'tasks-today': data => data.dueToday,
+                    'tasks-week': data => data.dueThisWeek,
+                    'tasks-maintenance': data => data.plannedMaintenance
+                });
+
+                // Benutzeraktivität
+                await updateWidget('/api/users/stats', {
+                    'users-active': data => data.activeUsers,
+                    'users-sessions': data => data.activeSessions,
+                    'users-docs': data => data.newDocuments,
+                    'users-changes': data => data.changesCount
+                });
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Dashboard-Daten:', error);
+                // Bei Fehlern zeige Platzhalter
+                document.querySelectorAll('.widget-value, .widget-details span').forEach(el => {
+                    el.textContent = '-';
+                });
+            }
+        }
+
+        // Systemstatus laden
+        async function loadSystemStatus() {
+            try {
+                // Prüfe Datenbankverbindung durch einen einfachen API-Aufruf
+                const dbResponse = await fetch(`${API_BASE_URL}/api/database/ping`, { timeout: 5000 });
+                const dbStatus = await dbResponse.json();
+                
+                // Status-Indikatoren aktualisieren
+                updateStatusIndicator('System', 'online');
+                updateStatusIndicator('Datenbank', dbStatus.connected ? 'online' : 'error');
+            } catch (error) {
+                console.error('Fehler beim Laden des Systemstatus:', error);
+                // Bei Fehlern entsprechende Status setzen
+                updateStatusIndicator('System', 'error');
+                updateStatusIndicator('Datenbank', 'error');
+                updateStatusIndicator('Updates', 'error');
+            }
+        }
+
+        // Letzte Aktivitäten laden
+        async function loadRecentActivities() {
+            // Diese Funktion ist jetzt deaktiviert, da die Aktivitäten nicht mehr angezeigt werden
+            return;
+        }
+
+        // Benachrichtigungen laden
+        async function loadNotifications() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/notifications`);
+                const notifications = await response.json();
+                
+                const container = document.querySelector('.notification-list');
+                container.innerHTML = '';
+                
+                notifications.forEach(notification => {
+                    container.innerHTML += `
+                        <div class="notification-item" data-id="${notification.id}">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-desc">${notification.description}</div>
+                            <div class="notification-time">${formatTimeAgo(notification.timestamp)}</div>
+                        </div>
+                    `;
+                });
+
+                // Ungelesene Benachrichtigungen Badge aktualisieren
+                const unreadCount = notifications.filter(n => !n.read).length;
+                updateNotificationBadge(unreadCount);
+            } catch (error) {
+                console.error('Fehler beim Laden der Benachrichtigungen:', error);
+            }
+        }
+
+        // Hilfsfunktionen
+        function updateTrend(selector, trend) {
+            const element = document.querySelector(selector);
+            if (trend > 0) {
+                element.innerHTML = `<i class="material-icons">arrow_upward</i> +${trend}%`;
+                element.classList.remove('negative');
+            } else {
+                element.innerHTML = `<i class="material-icons">arrow_downward</i> ${trend}%`;
+                element.classList.add('negative');
+            }
+        }
+
+        function updateStatusIndicator(name, status) {
+            const indicators = document.querySelectorAll('.status-indicator');
+            const indicator = Array.from(indicators).find(i => i.textContent.includes(name));
+            if (indicator) {
+                const dot = indicator.querySelector('.status-dot');
+                dot.className = 'status-dot ' + status.toLowerCase();
+            }
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'order': 'description',
+                'system': 'update',
+                'user': 'person',
+                'error': 'error',
+                'success': 'check_circle',
+                'warning': 'warning'
+            };
+            return icons[type] || 'info';
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Gerade eben';
+            if (seconds < 3600) return `Vor ${Math.floor(seconds/60)} Minuten`;
+            if (seconds < 86400) return `Vor ${Math.floor(seconds/3600)} Stunden`;
+            return `Vor ${Math.floor(seconds/86400)} Tagen`;
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'block' : 'none';
+            }
+        }
+
+        // Quick Actions Event Handler
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const action = this.querySelector('.material-icons').textContent;
+                
+                // Spezielle Behandlung für den Hilfe-Button
+                if (action === 'help') {
+                    const hilfeModal = document.getElementById('hilfeModal');
+                    if (hilfeModal) {
+                        hilfeModal.style.display = 'block';
+                        hilfeModal.style.position = 'fixed';
+                        hilfeModal.style.top = '0';
+                        hilfeModal.style.left = '0';
+                        hilfeModal.style.width = '100%';
+                        hilfeModal.style.height = '100%';
+                        hilfeModal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                        hilfeModal.style.zIndex = '2000';
+                        hilfeModal.style.paddingTop = '50px';
+                        hilfeModal.classList.remove('fade');
+                        hilfeModal.classList.add('show');
+                    }
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/actions/${action}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const result = await response.json();
+                    console.log(`Aktion "${action}" ausgeführt:`, result);
+                    
+                    // Dashboard neu laden nach Aktion
+                    loadDashboardData();
+                    loadRecentActivities();
+                } catch (error) {
+                    console.error(`Fehler bei Aktion "${action}":`, error);
+                }
+            });
+        });
+
+        // Automatische Aktualisierung
+        function startAutoRefresh() {
+            // Dashboard-Daten alle 60 Sekunden aktualisieren
+            setInterval(loadDashboardData, 60000);
+            
+            // Systemstatus alle 30 Sekunden aktualisieren
+            setInterval(loadSystemStatus, 30000);
+            
+            // Aktivitäten alle 2 Minuten aktualisieren
+            setInterval(loadRecentActivities, 120000);
+            
+            // Benachrichtigungen alle 30 Sekunden aktualisieren
+            setInterval(loadNotifications, 30000);
+
+            // Neue Tickets Badge alle 30 Sekunden aktualisieren
+            setInterval(updateNewTicketsBadge, 30000);
+        }
+
+        // Neue Tickets Badge aktualisieren
+        async function updateNewTicketsBadge() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support/tickets`);
+                const tickets = await response.json();
+                const newTicketsCount = tickets.filter(ticket => ticket.status === 'new').length;
+                
+                const badge = document.getElementById('newTicketsBadge');
+                if (badge) {
+                    badge.textContent = newTicketsCount;
+                    badge.style.display = newTicketsCount > 0 ? 'inline-block' : 'none';
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der neuen Tickets:', error);
+            }
+        }
+
+        // Initialisierung nach Login
+        function initializeDashboard() {
+            loadDashboardData();
+            loadSystemStatus();
+            loadRecentActivities();
+            loadNotifications();
+            updateNewTicketsBadge(); // Initial Badge aktualisieren
+            startAutoRefresh();
+        }
+
+        // Globale Suche
+        let searchModal;
+        let searchTimeout;
+
+        async function performGlobalSearch(query) {
+            if (!query.trim()) return;
+
+            try {
+                // Module durchsuchen
+                const modules = document.querySelectorAll('.nav-card');
+                const moduleResults = Array.from(modules)
+                    .filter(module => {
+                        const title = module.querySelector('.tile-title')?.textContent.toLowerCase() || '';
+                        const desc = module.querySelector('.tile-desc')?.textContent.toLowerCase() || '';
+                        return title.includes(query.toLowerCase()) || desc.includes(query.toLowerCase());
+                    })
+                    .map(module => {
+                        const title = module.querySelector('.tile-title')?.textContent || '';
+                        const desc = module.querySelector('.tile-desc')?.textContent || '';
+                        const href = module.getAttribute('href') || '#';
+                        return `<a href="${href}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-1">${title}</h6>
+                                <small><i class="material-icons">launch</i></small>
+                            </div>
+                            <small class="text-muted">${desc}</small>
+                        </a>`;
+                    });
+                document.getElementById('moduleResults').innerHTML = moduleResults.length ? 
+                    moduleResults.join('') : 
+                    '<div class="text-center p-3 text-muted">Keine Module gefunden</div>';
+
+                // Support-Tickets durchsuchen
+                const ticketsResponse = await fetch(`${API_BASE_URL}/api/support/tickets`);
+                const tickets = await ticketsResponse.json();
+                const ticketResults = tickets
+                    .filter(ticket => 
+                        ticket.title.toLowerCase().includes(query.toLowerCase()) ||
+                        ticket.description.toLowerCase().includes(query.toLowerCase())
+                    )
+                    .map(ticket => `
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-1">${ticket.title}</h6>
+                                <span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span>
+                            </div>
+                            <p class="mb-1 small">${ticket.description}</p>
+                            <small class="text-muted">Von ${ticket.user} am ${new Date(ticket.timestamp).toLocaleDateString()}</small>
+                        </div>
+                    `);
+                document.getElementById('ticketResults').innerHTML = ticketResults.length ? 
+                    ticketResults.join('') : 
+                    '<div class="text-center p-3 text-muted">Keine Tickets gefunden</div>';
+
+                // Aufgaben durchsuchen (Beispiel - muss an Ihre Aufgaben-API angepasst werden)
+                document.getElementById('taskResults').innerHTML = 
+                    '<div class="text-center p-3 text-muted">Aufgabensuche noch nicht implementiert</div>';
+
+            } catch (error) {
+                console.error('Fehler bei der Suche:', error);
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'new': 'bg-primary',
+                'in_progress': 'bg-warning',
+                'resolved': 'bg-success',
+                'closed': 'bg-secondary'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+
+        // Prüfen ob Benutzer bereits angemeldet ist
+        window.addEventListener('DOMContentLoaded', function() {
+            // Globale Suche initialisieren
+            searchModal = new bootstrap.Modal(document.getElementById('searchModal'));
+            
+            // Suchfeld Event-Listener
+            const searchInput = document.getElementById('globalSearch');
+            const searchBtn = document.getElementById('globalSearchBtn');
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performGlobalSearch(this.value);
+                }, 300);
+            });
+
+            searchBtn.addEventListener('click', function() {
+                performGlobalSearch(searchInput.value);
+                searchModal.show();
+            });
+
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performGlobalSearch(this.value);
+                    searchModal.show();
+                }
+            });
+
+            // Tastenkombination '/' zum Fokussieren der Suche
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+
+            // Bisheriger Code...
+            console.log('Seite geladen, prüfe Anmeldestatus...');
+            const storedUser = sessionStorage.getItem('currentUser');
+            
+            if (storedUser) {
+                try {
+                    const user = JSON.parse(storedUser);
+                    console.log('Gespeicherter Benutzer gefunden:', user);
+                    showLoggedInState(user);
+                    updateSessionCount();
+                } catch (error) {
+                    console.error('Fehler beim Laden des Benutzers:', error);
+                    showLoggedOutState();
+                }
+            } else {
+                console.log('Kein Benutzer gefunden, zeige Login-Formular');
+                showLoggedOutState();
+            }
+        });
+
+        // Support Modal Funktionen
+        let supportModal;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hilfe-Button Event Listener
+            document.getElementById('hilfeBtn').addEventListener('click', function() {
+                const hilfeModal = document.getElementById('hilfeModal');
+                if (hilfeModal) {
+                    hilfeModal.style.display = 'block';
+                    hilfeModal.style.position = 'fixed';
+                    hilfeModal.style.top = '0';
+                    hilfeModal.style.left = '0';
+                    hilfeModal.style.width = '100%';
+                    hilfeModal.style.height = '100%';
+                    hilfeModal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                    hilfeModal.style.zIndex = '2000';
+                    hilfeModal.style.paddingTop = '50px';
+                    hilfeModal.classList.remove('fade');
+                    hilfeModal.classList.add('show');
+                }
+            });
+
+            // Support Modal initialisieren
+            supportModal = new bootstrap.Modal(document.getElementById('supportModal'));
+            
+            // Support-Button Click Handler
+            document.getElementById('supportQuickAction').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (supportModal) {
+                    supportModal.show();
+                } else {
+                    console.error('Support Modal nicht initialisiert');
+                }
+            });
+
+            // Prüfe, ob ein Benutzer in der Session ist
+            const userData = sessionStorage.getItem('currentUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                showLoggedInState(user);
+                initializeDashboard();
+            } else {
+                showLoggedOutState();
+            }
+        });
+
+        async function submitSupportForm() {
+            const form = document.getElementById('supportForm');
+            const successAlert = document.getElementById('supportSuccess');
+            const errorAlert = document.getElementById('supportError');
+            
+            // Validiere das Formular
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Verstecke vorherige Meldungen
+            successAlert.classList.add('d-none');
+            errorAlert.classList.add('d-none');
+            
+            // Sammle und validiere Formulardaten
+            const type = document.getElementById('supportType').value;
+            const title = document.getElementById('supportTitle').value;
+            const description = document.getElementById('supportDescription').value;
+            const priority = document.getElementById('supportPriority').value;
+            
+            // Validierung
+            if (!type || !title || !description || !priority) {
+                errorAlert.textContent = 'Bitte füllen Sie alle Pflichtfelder aus.';
+                errorAlert.classList.remove('d-none');
+                return;
+            }
+            
+            const supportData = {
+                type,
+                title,
+                description,
+                priority,
+                timestamp: new Date().toISOString(),
+                user: JSON.parse(sessionStorage.getItem('currentUser'))?.username || 'anonymous',
+                status: 'new'
+            };
+            
+            try {
+                console.log('Sende Support-Daten:', supportData);
+                
+                // Prüfe die API-URL
+                const apiUrl = `${API_BASE_URL}/api/support/submit`;
+                console.log('Verwende API-URL:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(supportData),
+                    // Füge CORS-Optionen hinzu
+                    mode: 'cors',
+                    credentials: 'same-origin'
+                });
+
+                console.log('Server-Antwort Status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server-Fehlerantwort:', errorText);
+                    throw new Error(`Server-Fehler: ${response.status} - ${errorText}`);
+                }
+                
+                const responseData = await response.json();
+                console.log('Server-Antwort:', responseData);
+
+                // Zeige Erfolgsmeldung
+                successAlert.classList.remove('d-none');
+                
+                // Formular zurücksetzen
+                form.reset();
+                
+                // Badge aktualisieren
+                updateNewTicketsBadge();
+
+                // Modal nach 2 Sekunden schließen
+                setTimeout(() => {
+                    supportModal.hide();
+                    successAlert.classList.add('d-none');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Fehler beim Senden des Supports:', error);
+                errorAlert.textContent = 'Fehler beim Senden: ' + error.message;
+                errorAlert.classList.remove('d-none');
+            }
+        }
+    </script>
+</body>
+</html> 
