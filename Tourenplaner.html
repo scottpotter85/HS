@@ -1,0 +1,3318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourenplaner</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #009999;
+            --accent-color: #FFB900;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --white: #ffffff;
+            --tile-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: '72', 'Segoe UI', Arial, sans-serif;
+            font-size: 0.95rem;
+            margin: 0;
+            padding: 25px;
+        }
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 56px;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: -25px;
+            margin-left: -25px;
+            margin-right: -25px;
+        }
+        .main-content {
+            padding: 0.5rem 0.2rem 0.2rem 0.2rem;
+        }
+        .card {
+            background: var(--white);
+            border-radius: 7px;
+            box-shadow: var(--tile-shadow);
+            margin-bottom: 0.5rem;
+        }
+        .card-body {
+            padding: 0.6rem 0.7rem 0.5rem 0.7rem;
+        }
+        .card-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.95rem;
+        }
+        .form-label, label, .table th {
+            font-size: 0.95rem;
+            margin-bottom: 0.1rem;
+        }
+        .form-control, .form-select {
+            padding: 0.18rem 0.4rem;
+            font-size: 0.95rem;
+            height: 1.7rem;
+        }
+        .form-control-sm, .btn-sm {
+            font-size: 0.92rem;
+            padding: 0.10rem 0.4rem;
+            height: 1.4rem;
+        }
+        .btn, .btn-primary {
+            padding: 0.18rem 0.7rem;
+            font-size: 0.95rem;
+            min-height: 1.7rem;
+        }
+        .table {
+            font-size: 0.93rem;
+            margin-bottom: 0.3rem;
+        }
+        .table th, .table td {
+            padding: 0.18rem 0.4rem;
+        }
+        .legend {
+            gap: 7px;
+            margin-top: 3px;
+            font-size: 10px;
+        }
+        .legend-item {
+            gap: 2px;
+        }
+        .legend-color {
+            width: 13px;
+            height: 10px;
+        }
+        .truck-visualization {
+            padding: 6px;
+            margin: 6px 0;
+        }
+        .loading-stats, .optimization-info, .truck-info-panel, #truckInfoPanel, .info-panel {
+            font-size: 0.93rem !important;
+            padding: 0.3rem 0.5rem !important;
+            margin-top: 0.3rem !important;
+        }
+        .nav-tabs .nav-link {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+        .nav-tabs .nav-link.active {
+            font-size: 1rem;
+        }
+        .truck-container {
+            position: relative;
+            background: #ffffff;
+            border: 3px solid #000;
+            margin: 20px auto;
+            width: 800px; /* 6200mm / 7.75 = 800px für bessere Sichtbarkeit */
+            height: 323px; /* 2500mm / 7.75 = 323px */
+            overflow: visible;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .truck-loading-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border: 1px solid #ccc;
+        }
+        .pallet {
+            position: absolute;
+            border: 2px solid #000;
+            background: #87CEEB;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .pallet:hover {
+            background: #4682B4;
+            color: white;
+            z-index: 10;
+            transform: scale(1.02);
+        }
+        .pallet-rotated {
+            background: #FFB6C1;
+            border-color: #DC143C;
+        }
+        .pallet-rotated:hover {
+            background: #FF69B4;
+            color: white;
+        }
+        .truck-dimensions {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+        .truck-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .truck-visualization {
+            background: white;
+            border: 1px solid #dee2e6;
+            margin: 20px 0;
+            position: relative;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .truck-container {
+            position: relative;
+            background: #ffffff;
+            border: 3px solid #000;
+            margin: 20px auto;
+            width: 800px; /* 6200mm / 7.75 = 800px für bessere Sichtbarkeit */
+            height: 323px; /* 2500mm / 7.75 = 323px */
+            overflow: visible;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .truck-loading-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border: 1px solid #ccc;
+        }
+        .pallet {
+            position: absolute;
+            border: 2px solid #000;
+            background: #87CEEB;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .pallet:hover {
+            background: #4682B4;
+            color: white;
+            z-index: 10;
+            transform: scale(1.02);
+        }
+        .pallet-rotated {
+            background: #FFB6C1;
+            border-color: #DC143C;
+        }
+        .pallet-rotated:hover {
+            background: #FF69B4;
+            color: white;
+        }
+        .truck-dimensions {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+        .truck-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .loading-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        .optimization-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            border: 1px solid #333;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        .nav-tabs .nav-link {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .form-label {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        .table th {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: #004080;
+            border-color: #004080;
+        }
+        #map {
+            height: auto;
+            min-height: 220px;
+            max-width: 700px;
+            margin: 0 auto;
+            aspect-ratio: 3/2;
+            border-radius: 7px;
+            box-shadow: var(--tile-shadow);
+        }
+        @media (min-width: 992px) {
+            .main-content .row > .col-md-8 {
+                width: 58.33333333%;
+                flex: 0 0 58.33333333%;
+                max-width: 58.33333333%;
+                padding-left: 0.2rem;
+                padding-right: 0.2rem;
+            }
+            .main-content .row > .col-md-4 {
+                width: 41.66666667%;
+                flex: 0 0 41.66666667%;
+                max-width: 41.66666667%;
+                padding-left: 0.2rem;
+                padding-right: 0.2rem;
+            }
+        }
+        .shipments-card {
+            max-width: 700px;
+            margin: 0 auto;
+            min-height: 467px;
+        }
+        .shipments-card .card-body {
+            min-height: 467px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        /* Abstand für Neue Sendung anlegen */
+        #new-shipment .card-body {
+            padding: 80px !important;
+        }
+        /* Wochenübersicht Optimierung */
+        #weeklyTours .card {
+            margin-bottom: 0.7rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            border-left: 6px solid var(--primary-color);
+            border-radius: 8px;
+        }
+        #weeklyTours .card-body {
+            padding: 0.7rem 1.1rem 0.7rem 1.1rem;
+        }
+        #weeklyTours .day-header {
+            font-size: 1.08rem;
+            font-weight: 600;
+            color: var(--white);
+            background: linear-gradient(90deg, var(--primary-color) 80%, var(--secondary-color));
+            border-radius: 6px 6px 0 0;
+            padding: 0.4rem 0.8rem;
+            margin: -0.7rem -1.1rem 0.7rem -1.1rem;
+            letter-spacing: 0.5px;
+        }
+        #weeklyTours .table {
+            font-size: 0.93rem;
+            margin-bottom: 0.2rem;
+        }
+        #weeklyTours .table th, #weeklyTours .table td {
+            padding: 0.13rem 0.35rem;
+        }
+        #weeklyTours .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f3f6fa;
+        }
+        #weeklyTours .table-striped tbody tr:nth-of-type(even) {
+            background-color: #fff;
+        }
+        #weeklyTours .table-responsive {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        #weeklyTours .stat-bar {
+            display: flex;
+            gap: 18px;
+            font-size: 0.93rem;
+            color: #555;
+            margin-bottom: 0.2rem;
+            margin-top: -0.2rem;
+        }
+        #weeklyTours .stat-bar span {
+            background: #e8f0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: 500;
+        }
+        #weeklyTours .btn-danger {
+            padding: 0.10rem 0.5rem;
+            font-size: 0.93rem;
+        }
+        #weeklyTours .btn-danger[title] {
+            position: relative;
+        }
+        #weeklyTours .btn-danger[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #222;
+            color: #fff;
+            font-size: 0.85em;
+            padding: 2px 7px;
+            border-radius: 4px;
+            white-space: nowrap;
+            margin-left: 7px;
+            z-index: 10;
+        }
+        /* Kalender-Styles */
+        .table-calendar {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            table-layout: fixed;
+        }
+
+        .table-calendar th {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .table-calendar td {
+            height: 180px;
+            padding: 8px;
+            vertical-align: top;
+            background: var(--white);
+            border: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+
+        .table-calendar td:hover {
+            background: #f8f9fa;
+        }
+
+        .table-calendar td.today {
+            background: #fff8e6;
+            border: 2px solid var(--accent-color);
+        }
+
+        .table-calendar td.has-events {
+            background: #f0f7ff;
+        }
+
+        /* Sendungskarten im Kalender */
+        .calendar-shipment {
+            background: var(--white);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .calendar-shipment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .calendar-shipment.status-neu {
+            border-left-color: #17a2b8;
+        }
+
+        .calendar-shipment.status-geplant {
+            border-left-color: #28a745;
+        }
+
+        .calendar-shipment.status-versand {
+            border-left-color: #ffc107;
+        }
+
+        .calendar-shipment.status-abgeschlossen {
+            border-left-color: #6c757d;
+            opacity: 0.8;
+        }
+
+        /* Kalender Navigation */
+        .calendar-nav {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--tile-shadow);
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav .btn {
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+
+        .calendar-week-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Keine Sendungen Anzeige */
+        .no-shipments {
+            color: #6c757d;
+            text-align: center;
+            padding: 20px 0;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .status-badge.neu { background: #e3f2fd; color: #0d47a1; }
+        .status-badge.geplant { background: #e8f5e9; color: #1b5e20; }
+        .status-badge.versand { background: #fff3e0; color: #e65100; }
+        .status-badge.abgeschlossen { background: #f5f5f5; color: #424242; }
+
+        /* Hamburger button styling */
+        #sidebarToggle {
+            border: 1px solid rgba(255,255,255,0.25) !important;
+            border-radius: 6px !important;
+            padding: 6px 10px !important;
+            transition: all 0.2s ease !important;
+            background: rgba(255,255,255,0.05) !important;
+        }
+        
+        #sidebarToggle:hover {
+            background: rgba(255,255,255,0.15) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        }
+        
+        #sidebarToggle i {
+            font-size: 1.1rem !important;
+            color: #fff !important;
+        }
+
+        /* Navbar positioning fix */
+        .navbar-brand {
+            margin-left: 0 !important;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            height: calc(100vh - 56px);
+            width: 250px;
+            background: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .sidebar-menu {
+            padding: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f0f4f8;
+            text-decoration: none;
+            color: #1a365d;
+        }
+
+        .sidebar-item.active {
+            background-color: #1a365d;
+            color: white;
+            border-left-color: #FFB900;
+        }
+
+        .sidebar-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content Adjustments */
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+            padding: 20px;
+        }
+
+        .main-content.shifted {
+            margin-left: 250px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        .version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #718096;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark" style="background-color: #003366 !important;">
+        <div class="container-fluid">
+            <button class="btn btn-outline-light me-3" id="sidebarToggle" onclick="
+                document.querySelector('.sidebar').classList.toggle('show');
+                document.querySelector('.main-content').classList.toggle('shifted');
+            ">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="LOGO.svg" alt="Logo" style="height: 40px;" />
+                <span style="font-size: 1.13rem; font-weight: 700; color: #fff; margin-left: 12px;">Tourenplaner</span>
+            </a>
+            <div class="d-flex align-items-center ms-auto">
+                <button id="hilfeBtn" class="btn btn-outline-light me-3" onclick="
+                    var hilfeModal = document.getElementById('hilfeModal');
+                    if (hilfeModal) {
+                        hilfeModal.style.display = 'block';
+                        hilfeModal.style.position = 'fixed';
+                        hilfeModal.style.top = '0';
+                        hilfeModal.style.left = '0';
+                        hilfeModal.style.width = '100%';
+                        hilfeModal.style.height = '100%';
+                        hilfeModal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                        hilfeModal.style.zIndex = '2000';
+                        hilfeModal.style.paddingTop = '50px';
+                        hilfeModal.classList.remove('fade');
+                        hilfeModal.classList.add('show');
+                    }
+                "><i class="bi bi-question-circle"></i> Hilfe</button>
+                <div class="d-flex align-items-center" id="userInfo" style="gap: 10px;">
+                    <img id="userAvatar" src="https://randomuser.me/api/portraits/men/1.jpg" alt="User" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                    <span id="userName" style="font-weight: 500; color: #fff;">Benutzer</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-menu" id="sidebarMenu">
+            <a href="index.html" class="sidebar-item">
+                <i class="bi bi-house"></i>
+                Startseite
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <ul class="nav nav-tabs mb-4" id="tourPlannerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Wochenübersicht</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="new-shipment-tab" data-bs-toggle="tab" data-bs-target="#new-shipment" type="button" role="tab">Neue Sendung</button>
+            </li>
+            <li class="nav-item" role="presentation">
+            <button class="nav-link" id="plan-tour-tab" data-bs-toggle="tab" data-bs-target="#plan-tour" type="button" role="tab">Tourenplanung</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Wochenübersicht -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Touren dieser Woche</h5>
+                    <div id="weeklyTours"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Neue Sendung -->
+        <div class="tab-pane fade" id="new-shipment" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Neue Sendung anlegen</h5>
+                    <form id="newShipmentForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="auNumber" class="form-label">Auftragsnummer</label>
+                                    <input type="text" class="form-control" id="auNumber" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customerName" class="form-label">Kundenname</label>
+                                    <input type="text" class="form-control" id="customerName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="deliveryAddress" class="form-label">Lieferadresse</label>
+                                    <input type="text" class="form-control" id="deliveryAddress" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="deliveryDate" class="form-label">Lieferdatum</label>
+                                    <input type="date" class="form-control" id="deliveryDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Packstücke</label>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0" id="packageTable">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 20%">Länge (mm)</th>
+                                                    <th style="width: 20%">Breite (mm)</th>
+                                                    <th style="width: 20%">Gewicht (kg)</th>
+                                                    <th style="width: 20%">Anzahl</th>
+                                                    <th style="width: 10%"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="number" class="form-control form-control-sm" name="length" required min="1" value="1200"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" name="width" required min="1" value="800"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" name="weight" required min="1" value="100"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" name="count" required min="1" value="1"></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-success btn-sm add-package" onclick="addPackageRow(this)" title="Packstück hinzufügen">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sendung speichern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tourenplanung -->
+        <div class="tab-pane fade" id="plan-tour" role="tabpanel">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Routenplanung</h5>
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shipments-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Verfügbare Sendungen</h5>
+                            <div class="d-flex gap-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="useTrailer">
+                                    <label class="form-check-label" for="useTrailer">
+                                        Mit Anhänger
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="useHandLift">
+                                    <label class="form-check-label" for="useHandLift">
+                                        Mit Hubwagen
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="shipmentsList" class="list-group mb-3"></div>
+                            <button class="btn btn-primary w-100" onclick="TourPlanner.optimizeTour()">Tour optimieren</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <i class="bi bi-truck"></i> LKW Beladungsvisualisierung
+                            </h5>
+                            <div class="truck-visualization position-relative" style="background:transparent;">
+                                <svg id="truckSvg" width="100%" height="400" style="display:block;"></svg>
+                                <div id="truckLegend" class="legend"></div>
+                                <div id="truckInfoPanel"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="version">Version 1.5.0</div>
+
+    <!-- Modal für Tourenbericht -->
+    <div class="modal fade" id="tourenberichtModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tourenbericht Vorschau</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="tourenberichtContent">
+                    <!-- Hier wird der Inhalt dynamisch eingefügt -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                    <button type="button" class="btn btn-primary" onclick="TourPlanner.generateTourReport()">
+                        <i class="bi bi-file-pdf"></i> PDF erstellen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        // Funktion zum Hinzufügen einer neuen Packstück-Zeile
+        function addPackageRow(button) {
+            console.log('addPackageRow aufgerufen');
+            const tbody = button.closest('tbody');
+            const firstRow = tbody.rows[0];
+            const newRow = firstRow.cloneNode(true);
+            
+            // Standardwerte für neue Zeile
+            newRow.querySelectorAll('input').forEach(input => {
+                if (input.name === 'length') input.value = '1200';
+                if (input.name === 'width') input.value = '800';
+                if (input.name === 'weight') input.value = '100';
+                if (input.name === 'count') input.value = '1';
+            });
+
+            // Plus-Button durch Minus-Button ersetzen
+            const lastCell = newRow.querySelector('td:last-child');
+            lastCell.innerHTML = '<button type="button" class="btn btn-danger btn-sm remove-package" onclick="removePackageRow(this)" title="Packstück entfernen"><i class="bi bi-dash"></i></button>';
+            
+            tbody.appendChild(newRow);
+            console.log('Neue Zeile hinzugefügt');
+        }
+
+        // Funktion zum Entfernen einer Packstück-Zeile
+        function removePackageRow(button) {
+            console.log('removePackageRow aufgerufen');
+            const tbody = button.closest('tbody');
+            if (tbody.rows.length > 1) {
+                button.closest('tr').remove();
+                console.log('Zeile entfernt');
+            }
+        }
+
+        // Authentifizierung und Benutzeranzeige
+        async function checkAuthentication() {
+            try {
+                console.log('Starte Authentifizierungsprüfung...');
+                const userData = sessionStorage.getItem('currentUser');
+                console.log('Geladene Benutzerdaten:', userData);
+
+                if (!userData) {
+                    console.log('Keine Benutzerdaten gefunden - Zugriff verweigert');
+                    return false;
+                }
+
+                try {
+                    const user = JSON.parse(userData);
+                    console.log('Geparste Benutzerdaten:', user);
+
+                    // Erlaube Zugriff nur für Admin oder wenn Tourenplaner-Recht vorhanden
+                    if (user.role === 'admin' || (user.rights && user.rights.includes('Tourenplaner.html'))) {
+                        console.log('Benutzer hat Berechtigung');
+                        // Aktualisiere Benutzeranzeige
+                        const userNameElement = document.getElementById('userName');
+                        if (userNameElement) {
+                            userNameElement.textContent = user.name || user.username || 'Unbekannter Benutzer';
+                        }
+                        
+                        // Aktualisiere Seitenmenü basierend auf Benutzerrechten
+                        updateSidebarMenu(user);
+                        
+                        return true;
+                    }
+
+                    console.log('Keine ausreichenden Rechte gefunden - Zugriff verweigert');
+                    return false;
+
+                } catch (parseError) {
+                    console.error('Fehler beim Parsen der Benutzerdaten:', parseError);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Authentifizierungsfehler:', error);
+                return false;
+            }
+        }
+
+        // Neue Funktion zum Aktualisieren des Seitenmenüs
+        function updateSidebarMenu(user) {
+            const sidebarMenu = document.getElementById('sidebarMenu');
+            if (!sidebarMenu) return;
+
+            // Definiere alle verfügbaren Menüpunkte mit ihren Eigenschaften
+            const menuItems = [
+                { href: 'index.html', icon: 'bi-house', text: 'Startseite' },
+                { href: 'Kalkulation.html', icon: 'bi-calculator', text: 'Kalkulation' },
+                { href: 'EPS.html', icon: 'bi-box', text: 'EPS-Berechnung' },
+                { href: 'Drucker.html', icon: 'bi-printer', text: 'Digitaler Verpackungsdruck' },
+                { href: 'Plotter.html', icon: 'bi-scissors', text: 'Verpackungsplotter' },
+                { href: 'Produktion.html', icon: 'bi-gear', text: 'Produktionsaufträge' },
+                { href: 'Zuschnitte.html', icon: 'bi-crop', text: 'Zuschnitte' },
+                { href: 'Palettenkonto.html', icon: 'bi-stack', text: 'Palettenkonto' },
+                { href: 'Aufgabe.html', icon: 'bi-list-task', text: 'Aufgaben' },
+                { href: 'G-Code.html', icon: 'bi-code-slash', text: 'G-Code Generator' },
+                { href: 'unternehmensplaner.html', icon: 'bi-building', text: 'Unternehmensplanung' },
+                { href: 'Lieferant.html', icon: 'bi-truck', text: 'Lieferanten' },
+                { href: 'Tourenplaner.html', icon: 'bi-map', text: 'Tourenplaner' }
+            ];
+
+            // Startseite ist immer sichtbar
+            let menuHTML = `
+                <a href="index.html" class="sidebar-item">
+                    <i class="bi bi-house"></i>
+                    Startseite
+                </a>
+            `;
+
+            // Füge weitere Menüpunkte basierend auf Benutzerrechten hinzu
+            menuItems.forEach(item => {
+                if (item.href === 'index.html') return; // Überspringe Startseite, da bereits hinzugefügt
+                
+                if (user.role === 'admin' || (user.rights && user.rights.includes(item.href))) {
+                    const isActive = item.href === 'Tourenplaner.html' ? ' active' : '';
+                    menuHTML += `
+                        <a href="${item.href}" class="sidebar-item${isActive}">
+                            <i class="bi ${item.icon}"></i>
+                            ${item.text}
+                        </a>
+                    `;
+                }
+            });
+
+            sidebarMenu.innerHTML = menuHTML;
+        }
+
+        // Beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuthentication();
+            if (!isAuthenticated) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // TourPlanner initialisieren
+            console.log('Initialisiere TourPlanner');
+            TourPlanner.init();
+        });
+
+        // Tourenplaner Hauptmodul
+        const TourPlanner = {
+            // Fahrzeuggewichte
+            TRUCK_EMPTY_WEIGHT: 5700,
+            TRUCK_MAX_WEIGHT: 7499,
+            TRAILER_EMPTY_WEIGHT: 4500,
+            TRAILER_MAX_WEIGHT: 9500,
+
+            state: {
+                map: null,
+                shipments: [],
+                selectedShipments: new Set(),
+                unloadOrder: {},
+                currentWeekStart: null,
+                routeLayer: null,
+                markersLayer: null,
+                geocodingCache: {},
+                suggestions: [], // Füge suggestions zum state hinzu
+            },
+
+            api: {
+                baseUrl: 'http://192.168.1.20:5050/api',
+                
+                // Sendungen abrufen
+                async getShipments() {
+                    try {
+                        const response = await fetch(`${this.baseUrl}/shipments`);
+                        if (!response.ok) throw new Error('Fehler beim Abrufen der Sendungen');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('API Fehler:', error);
+                        return [];
+                    }
+                },
+                
+                // Neue Sendung anlegen
+                async createShipment(data) {
+                    try {
+                        const response = await fetch(`${this.baseUrl}/shipments`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        if (!response.ok) throw new Error('Fehler beim Erstellen der Sendung');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('API Fehler:', error);
+                        throw error;
+                    }
+                },
+
+                // Sendung aktualisieren
+                async updateShipment(id, data) {
+                    try {
+                        const response = await fetch(`${this.baseUrl}/shipments/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        if (!response.ok) throw new Error('Fehler beim Aktualisieren der Sendung');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('API Fehler:', error);
+                        throw error;
+                    }
+                },
+
+                // Sendung löschen
+                async deleteShipment(id) {
+                    const response = await fetch(`${this.baseUrl}/shipments/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) throw new Error('Fehler beim Löschen der Sendung');
+                    return await response.json();
+                },
+
+                // Status einer Sendung aktualisieren
+                async updateShipmentStatus(id, status) {
+                    const response = await fetch(`${this.baseUrl}/shipments/${id}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status })
+                    });
+                    if (!response.ok) throw new Error('Fehler beim Aktualisieren des Status');
+                    return await response.json();
+                },
+                
+                // Touren für ein Datum abrufen
+                async getToursByDate(date) {
+                    const response = await fetch(`${this.baseUrl}/tours/date/${date}`);
+                    if (!response.ok) throw new Error('Fehler beim Abrufen der Touren');
+                    return await response.json();
+                },
+
+                // Geocoding-Anfrage
+                async geocode(address) {
+                    const response = await fetch(`${this.baseUrl}/geocode`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ address })
+                    });
+                    if (!response.ok) throw new Error('Fehler beim Geocoding');
+                    return await response.json();
+                },
+
+                // Tour erstellen
+                async createTour(data) {
+                    try {
+                        const response = await fetch(`${this.baseUrl}/tours`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        if (!response.ok) throw new Error('Fehler beim Erstellen der Tour');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('API Fehler:', error);
+                        throw error;
+                    }
+                },
+
+                // Route berechnen
+                async calculateRoute(coordinates) {
+                    try {
+                        console.log('Berechne Route für Koordinaten:', coordinates);
+                        const response = await fetch(`${this.api.baseUrl}/route`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                waypoints: coordinates.map(coord => ({
+                                    lat: parseFloat(coord.lat),
+                                    lng: parseFloat(coord.lng)
+                                }))
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Routenberechnung fehlgeschlagen: ${response.statusText}`);
+                        }
+                        
+                        const routeData = await response.json();
+                        console.log('Route berechnet:', routeData);
+                        return routeData;
+                    } catch (error) {
+                        console.error('Fehler bei der Routenberechnung:', error);
+                        this.showNotification('Fehler bei der Routenberechnung: ' + error.message, 'error');
+                        throw error;
+                    }
+                },
+
+                // Route auf Karte anzeigen
+                displayRoute(route, coordinates) {
+                    // Lösche bestehende Layer
+                    if (this.state.routeLayer) {
+                        this.state.map.removeLayer(this.state.routeLayer);
+                    }
+                    if (this.state.markersLayer) {
+                        this.state.map.removeLayer(this.state.markersLayer);
+                    }
+
+                    // Erstelle Layer für Route und Marker
+                    this.state.routeLayer = L.layerGroup().addTo(this.state.map);
+                    this.state.markersLayer = L.layerGroup().addTo(this.state.map);
+
+                    // Zeichne die Route
+                    const routeLine = L.polyline(route.coordinates, {
+                        color: '#0066cc',
+                        weight: 4,
+                        opacity: 0.8
+                    }).addTo(this.state.routeLayer);
+
+                    // Füge Start/Ziel Marker hinzu
+                    coordinates.forEach((coord, index) => {
+                        let icon;
+                        if (index === 0) {
+                            // Depot-Icon (Start)
+                            icon = L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div style="background-color:#003366;color:white;border-radius:50%;width:30px;height:30px;text-align:center;line-height:30px;">D</div>`,
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            });
+                        } else {
+                            // Ziel-Icon
+                            icon = L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div style="background-color:#28a745;color:white;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;">Z</div>`,
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            });
+                        }
+
+                        L.marker([coord.lat, coord.lng], { icon }).addTo(this.state.markersLayer);
+                    });
+
+                    // Zentriere die Karte auf die Route
+                    const bounds = routeLine.getBounds();
+                    this.state.map.fitBounds(bounds, { padding: [50, 50] });
+
+                    // Zeige Routeninformationen
+                    const duration = Math.round(route.duration / 60); // Minuten
+                    const distance = Math.round(route.distance / 1000); // Kilometer
+                    
+                    const infoPanel = document.createElement('div');
+                    infoPanel.className = 'card mt-3';
+                    infoPanel.innerHTML = `
+                        <div class="card-body">
+                            <h6 class="card-title">Routeninformationen</h6>
+                            <div class="d-flex justify-content-around text-center">
+                                <div>
+                                    <div class="h4 mb-0">${distance} km</div>
+                                    <small class="text-muted">Gesamtstrecke</small>
+                                </div>
+                                <div>
+                                    <div class="h4 mb-0">${duration} min</div>
+                                    <small class="text-muted">Fahrzeit</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const mapContainer = document.getElementById('map').parentElement;
+                    const existingInfoPanel = mapContainer.querySelector('.card');
+                    if (existingInfoPanel) {
+                        existingInfoPanel.remove();
+                    }
+                    mapContainer.appendChild(infoPanel);
+                }
+            },
+
+            // Initialisierung
+            async init() {
+                console.log('TourPlanner.init() gestartet');
+                try {
+                    // Initialisiere nur einmal
+                    if (this._initialized) {
+                        console.log('TourPlanner bereits initialisiert, überspringe...');
+                        return;
+                    }
+                    this._initialized = true;
+
+                    this.initMap();
+                    this.initEventListeners();
+                    await this.loadShipments();
+                    // Entferne den direkten Aufruf von updateUI hier
+                    console.log('TourPlanner.init() abgeschlossen');
+                } catch (error) {
+                    console.error('Fehler bei der Initialisierung:', error);
+                    this._initialized = false;
+                }
+            },
+
+            // Karte initialisieren
+            initMap() {
+                if (this.state.map) {
+                    console.log('Karte bereits initialisiert, überspringe Initialisierung');
+                    return;
+                }
+                console.log('Initialisiere neue Karte');
+                this.state.map = L.map('map').setView([49.4962, 8.6048], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap-Mitwirkende'
+                }).addTo(this.state.map);
+            },
+
+            // Event-Listener initialisieren
+            initEventListeners() {
+                console.log('initEventListeners() aufgerufen');
+                
+                // Formular für neue Sendungen
+                const form = document.getElementById('newShipmentForm');
+                if (form) {
+                    // Entferne alle existierenden Event-Listener
+                    const newForm = form.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                    
+                    // Füge einen einzelnen Event-Listener hinzu
+                    newForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        if (newForm.dataset.isSubmitting === 'true') {
+                            console.log('Formular wird bereits verarbeitet');
+                            return;
+                        }
+                        
+                        try {
+                            newForm.dataset.isSubmitting = 'true';
+                            const submitButton = newForm.querySelector('button[type="submit"]');
+                            if (submitButton) {
+                                submitButton.disabled = true;
+                            }
+
+                            await this.createNewShipment();
+                        } finally {
+                            newForm.dataset.isSubmitting = 'false';
+                            const submitButton = newForm.querySelector('button[type="submit"]');
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                            }
+                        }
+                    });
+                }
+
+                // Anhänger-Toggle
+                const trailerToggle = document.getElementById('useTrailer');
+                if (trailerToggle) {
+                    const newTrailerToggle = trailerToggle.cloneNode(true);
+                    trailerToggle.parentNode.replaceChild(newTrailerToggle, trailerToggle);
+                    newTrailerToggle.addEventListener('change', () => {
+                        document.getElementById('truckSvg').innerHTML = '';
+                        this.updateTruckVisualization();
+                    });
+                }
+
+                // Hubwagen-Toggle
+                const liftToggle = document.getElementById('useHandLift');
+                if (liftToggle) {
+                    const newLiftToggle = liftToggle.cloneNode(true);
+                    liftToggle.parentNode.replaceChild(newLiftToggle, liftToggle);
+                    newLiftToggle.addEventListener('change', () => {
+                        document.getElementById('truckSvg').innerHTML = '';
+                        this.updateTruckVisualization();
+                    });
+                }
+
+                // Tab-Wechsel - Verwende Bootstrap Tab Events
+                const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+                tabs.forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', (e) => {
+                        console.log('Tab gewechselt zu:', e.target.id);
+                        if (this.state.map) {
+                            this.state.map.invalidateSize();
+                        }
+                        // Aktualisiere UI nur wenn zum Planungs-Tab gewechselt wird
+                        if (e.target.id === 'plan-tour-tab') {
+                            this.updateShipmentsList();
+                        }
+                    });
+                });
+            },
+
+            // Neue Sendung erstellen - Überarbeitete Version
+            async createNewShipment() {
+                console.log('Starte Erstellung einer neuen Sendung');
+                
+                const packageRows = document.querySelectorAll('#packageTable tbody tr');
+                const packages = [];
+                Array.from(packageRows).forEach(row => {
+                    const count = parseInt(row.querySelector('input[name="count"]').value);
+                    const length = parseInt(row.querySelector('input[name="length"]').value);
+                    const width = parseInt(row.querySelector('input[name="width"]').value);
+                    const weight = parseInt(row.querySelector('input[name="weight"]').value);
+                    for (let i = 0; i < count; i++) {
+                        packages.push({ length, width, weight });
+                    }
+                });
+
+                // Adresse aufteilen
+                const fullAddress = document.getElementById('deliveryAddress').value;
+                const addressParts = fullAddress.split(',').map(part => part.trim());
+                const plz = addressParts[1] ? addressParts[1].split(' ')[0] : '';
+                const ort = addressParts[1] ? addressParts[1].split(' ').slice(1).join(' ') : '';
+
+                const shipmentData = {
+                    sendungsnummer: document.getElementById('auNumber').value,
+                    kunde: document.getElementById('customerName').value,
+                    adresse: addressParts[0] || '',
+                    plz: plz,
+                    ort: ort,
+                    lieferdatum: document.getElementById('deliveryDate').value,
+                    volumen: packages.length, // Anzahl der Paletten
+                    gewicht: packages.reduce((sum, p) => sum + p.weight, 0),
+                    status: 'neu'
+                };
+
+                console.log('Sende Sendungsdaten:', shipmentData);
+                const result = await this.api.createShipment(shipmentData);
+                console.log('Sendung erstellt:', result);
+                
+                await this.loadShipments();
+                this.updateUI();
+
+                // Formular zurücksetzen
+                const form = document.getElementById('newShipmentForm');
+                if (form) {
+                    form.reset();
+                }
+
+                // Tabelle zurücksetzen
+                const packageTable = document.getElementById('packageTable').getElementsByTagName('tbody')[0];
+                while (packageTable.rows.length > 1) packageTable.deleteRow(1);
+
+                // Standardwerte für erste Zeile
+                const firstRow = packageTable.rows[0];
+                firstRow.querySelector('input[name="length"]').value = '1200';
+                firstRow.querySelector('input[name="width"]').value = '800';
+                firstRow.querySelector('input[name="weight"]').value = '200';
+                firstRow.querySelector('input[name="count"]').value = '1';
+
+                this.showNotification('Sendung erfolgreich angelegt', 'success');
+
+                // Wechsel zum Übersichts-Tab
+                const overviewTab = document.querySelector('#overview-tab');
+                if (overviewTab) {
+                    const tab = new bootstrap.Tab(overviewTab);
+                    tab.show();
+                }
+            },
+
+            // Sendungen laden
+            async loadShipments() {
+                console.log('loadShipments() aufgerufen');
+                try {
+                    const rawShipments = await this.api.getShipments();
+                    console.log('Anzahl geladener Sendungen:', rawShipments.length);
+                    
+                    // Dedupliziere Sendungen basierend auf ID
+                    const uniqueShipments = new Map();
+                    rawShipments.forEach(shipment => {
+                        uniqueShipments.set(shipment.id, {
+                            ...shipment,
+                            deliveryDate: shipment.lieferdatum || new Date().toISOString().split('T')[0],
+                            customerName: shipment.kunde || '',
+                            auNumber: shipment.sendungsnummer || '',
+                            packages: Array.isArray(shipment.packages) ? shipment.packages : 
+                                     new Array(shipment.volumen || 1).fill({
+                                         length: 1200,
+                                         width: 800,
+                                         weight: 200
+                                     })
+                        });
+                    });
+                    
+                    this.state.shipments = Array.from(uniqueShipments.values());
+                    console.log('Anzahl eindeutiger Sendungen nach Verarbeitung:', this.state.shipments.length);
+                    
+                    // Aktualisiere UI nur hier
+                    this.updateUI();
+                } catch (error) {
+                    console.error('Fehler beim Laden der Sendungen:', error);
+                    this.showNotification('Fehler beim Laden der Sendungen: ' + error.message, 'error');
+                }
+            },
+
+            // Sendungsstatus aktualisieren
+            async updateShipmentStatus(id, status) {
+                try {
+                    await this.api.updateShipmentStatus(id, status);
+                    await this.loadShipments();
+                    this.updateUI();
+                } catch (error) {
+                    console.error('Fehler beim Aktualisieren des Status:', error);
+                    this.showNotification('Fehler beim Aktualisieren des Status: ' + error.message, 'error');
+                }
+            },
+
+            // Sendung löschen
+            async deleteShipment(id) {
+                if (confirm('Möchten Sie diese Sendung wirklich löschen?')) {
+                    try {
+                        await this.api.deleteShipment(id);
+                        this.state.selectedShipments.delete(id);
+                        await this.loadShipments();
+                        this.updateUI();
+                        this.showNotification('Sendung wurde gelöscht', 'success');
+                    } catch (error) {
+                        console.error('Fehler beim Löschen der Sendung:', error);
+                        this.showNotification('Fehler beim Löschen der Sendung: ' + error.message, 'error');
+                    }
+                }
+            },
+
+            // UI aktualisieren
+            updateUI() {
+                console.log('updateUI() aufgerufen');
+                // Verhindere mehrfache gleichzeitige Updates
+                if (this._updatingUI) {
+                    console.log('UI-Update läuft bereits, überspringe...');
+                    return;
+                }
+                this._updatingUI = true;
+
+                try {
+                    this.updateWeeklyOverview();
+                    this.updateShipmentsList();
+                    this.updateTruckVisualization();
+                    this.showSuggestions();
+                    console.log('UI-Update abgeschlossen');
+                } finally {
+                    this._updatingUI = false;
+                }
+            },
+
+            // Hilfsfunktion: ISO-Kalenderwoche berechnen
+            getISOWeek(date) {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+                const week1 = new Date(d.getFullYear(), 0, 4);
+                return 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+            },
+            // Hilfsfunktion: Wochenstart (Montag) für ein Datum
+            getWeekStart(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Montag
+                return new Date(d.setDate(diff));
+            },
+            // Wochenübersicht als Kalenderansicht
+            updateWeeklyOverview() {
+                const container = document.getElementById('weeklyTours');
+                container.innerHTML = '';
+
+                // State für aktuelle Woche
+                if (!this.state.currentWeekStart) {
+                    this.state.currentWeekStart = this.getWeekStart(new Date());
+                }
+                const weekStart = new Date(this.state.currentWeekStart);
+                const weekDays = [];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(weekStart);
+                    d.setDate(weekStart.getDate() + i);
+                    weekDays.push(d);
+                }
+                const weekNumber = this.getISOWeek(weekStart);
+                const year = weekStart.getFullYear();
+
+                // Navigation
+                const navDiv = document.createElement('div');
+                navDiv.className = 'calendar-nav d-flex align-items-center justify-content-between mb-3';
+                navDiv.innerHTML = `
+                    <button class="btn btn-outline-primary" id="prevWeekBtn">
+                        <i class="bi bi-chevron-left"></i> Vorherige Woche
+                    </button>
+                    <div class="calendar-week-title">
+                        KW ${weekNumber} / ${year}
+                    </div>
+                    <button class="btn btn-outline-primary" id="nextWeekBtn">
+                        Nächste Woche <i class="bi bi-chevron-right"></i>
+                    </button>
+                `;
+                container.appendChild(navDiv);
+
+                // Event-Listener für Navigation
+                document.getElementById('prevWeekBtn').addEventListener('click', () => {
+                    const newDate = new Date(this.state.currentWeekStart);
+                    newDate.setDate(newDate.getDate() - 7);
+                    this.state.currentWeekStart = newDate;
+                    this.updateUI();
+                });
+
+                document.getElementById('nextWeekBtn').addEventListener('click', () => {
+                    const newDate = new Date(this.state.currentWeekStart);
+                    newDate.setDate(newDate.getDate() + 7);
+                    this.state.currentWeekStart = newDate;
+                    this.updateUI();
+                });
+
+                // Kalender-Grid
+                const table = document.createElement('table');
+                table.className = 'table table-bordered table-calendar';
+                const thead = document.createElement('thead');
+                const trHead = document.createElement('tr');
+                weekDays.forEach(d => {
+                    const th = document.createElement('th');
+                    th.innerHTML = `
+                        ${d.toLocaleDateString('de-DE', { weekday: 'short' })}<br>
+                        <span style="font-size:1.1rem;">${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>
+                    `;
+                    trHead.appendChild(th);
+                });
+                thead.appendChild(trHead);
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                const trBody = document.createElement('tr');
+                const today = new Date().toISOString().slice(0, 10);
+
+                weekDays.forEach(day => {
+                    const td = document.createElement('td');
+                    const dayStr = day.toISOString().slice(0, 10);
+                    
+                    if (dayStr === today) {
+                        td.className = 'today';
+                    }
+
+                    td.setAttribute('data-date', dayStr);
+                    td.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        td.style.backgroundColor = '#e8f4f8';
+                    });
+                    td.addEventListener('dragleave', (e) => {
+                        e.preventDefault();
+                        if (dayStr === today) {
+                            td.style.backgroundColor = '#fff8e6';
+                        } else {
+                            td.style.backgroundColor = '';
+                        }
+                    });
+                    td.addEventListener('drop', async (e) => {
+                        e.preventDefault();
+                        td.style.backgroundColor = '';
+                        const shipmentId = parseInt(e.dataTransfer.getData('shipmentId'));
+                        const shipment = this.state.shipments.find(s => s.id === shipmentId);
+                        
+                        if (shipment) {
+                            try {
+                                // Aktualisiere das Lieferdatum in der Datenbank
+                                const updatedShipment = {
+                                    ...shipment,
+                                    lieferdatum: dayStr,
+                                    deliveryDate: dayStr
+                                };
+                                
+                                console.log('Aktualisiere Sendung:', updatedShipment);
+                                
+                                // API-Aufruf zum Aktualisieren der Sendung
+                                await this.api.updateShipment(shipmentId, {
+                                    id: shipmentId,
+                                    sendungsnummer: shipment.sendungsnummer || shipment.auNumber,
+                                    kunde: shipment.kunde || shipment.customerName,
+                                    adresse: shipment.adresse,
+                                    plz: shipment.plz,
+                                    ort: shipment.ort,
+                                    lieferdatum: dayStr,
+                                    status: shipment.status,
+                                    gewicht: shipment.gewicht,
+                                    volumen: shipment.volumen || (Array.isArray(shipment.packages) ? shipment.packages.length : 1)
+                                });
+
+                                // Aktualisiere den lokalen State
+                                const shipmentIndex = this.state.shipments.findIndex(s => s.id === shipmentId);
+                                if (shipmentIndex !== -1) {
+                                    this.state.shipments[shipmentIndex] = {
+                                        ...this.state.shipments[shipmentIndex],
+                                        lieferdatum: dayStr,
+                                        deliveryDate: dayStr
+                                    };
+                                }
+
+                                // Zeige Erfolgsmeldung
+                                this.showNotification(`Sendung wurde auf den ${new Date(dayStr).toLocaleDateString('de-DE')} verschoben`, 'success');
+                                
+                                // Aktualisiere die Ansicht
+                                await this.loadShipments();
+                                this.updateUI();
+                            } catch (error) {
+                                console.error('Fehler beim Aktualisieren der Sendung:', error);
+                                this.showNotification('Fehler beim Verschieben der Sendung: ' + error.message, 'error');
+                                
+                                // Stelle den ursprünglichen Zustand wieder her
+                                await this.loadShipments();
+                                this.updateUI();
+                            }
+                        }
+                    });
+
+                    // Sendungen für diesen Tag
+                    const shipments = this.state.shipments.filter(s => {
+                        const dateStr = s.lieferdatum || s.deliveryDate || '';
+                        if (!dateStr) return false;
+                        const dateObj = new Date(dateStr);
+                        if (isNaN(dateObj.getTime())) return false;
+                        return dateStr === dayStr;
+                    });
+                    
+                    if (shipments.length > 0) {
+                        td.classList.add('has-events');
+                        shipments.forEach(s => {
+                            const div = document.createElement('div');
+                            div.className = `calendar-shipment status-${s.status || 'neu'}`;
+                            div.setAttribute('draggable', 'true');
+                            div.setAttribute('data-shipment-id', s.id);
+                            
+                            // Drag & Drop Event Listener
+                            div.addEventListener('dragstart', (e) => {
+                                e.dataTransfer.setData('shipmentId', s.id);
+                                div.style.opacity = '0.5';
+                                // Visuelles Feedback für alle möglichen Drop-Zonen
+                                document.querySelectorAll('.table-calendar td').forEach(cell => {
+                                    if (cell.getAttribute('data-date') !== dayStr) {
+                                        cell.style.border = '2px dashed #4CAF50';
+                                    }
+                                });
+                            });
+                            div.addEventListener('dragend', (e) => {
+                                div.style.opacity = '1';
+                                // Entferne visuelles Feedback
+                                document.querySelectorAll('.table-calendar td').forEach(cell => {
+                                    cell.style.border = '';
+                                    cell.style.backgroundColor = '';
+                                });
+                            });
+
+                            div.innerHTML = `
+                                <div style="font-size:0.9rem;font-weight:600;color:var(--primary-color);">
+                                    ${s.customerName}
+                                </div>
+                                <div style="font-size:0.8rem;color:#666;">
+                                    ${s.auNumber} · ${Array.isArray(s.packages) ? s.packages.length : (s.volumen || 1)} Paletten
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <select class="form-select form-select-sm status-select" 
+                                            style="width:auto;font-size:0.8rem;" 
+                                            data-shipment-id="${s.id}">
+                                        <option value="neu" ${s.status === 'neu' ? 'selected' : ''}>Neu</option>
+                                        <option value="geplant" ${s.status === 'geplant' ? 'selected' : ''}>Geplant</option>
+                                        <option value="versand" ${s.status === 'versand' ? 'selected' : ''}>Versand</option>
+                                        <option value="abgeschlossen" ${s.status === 'abgeschlossen' ? 'selected' : ''}>Abgeschlossen</option>
+                                    </select>
+                                    <button class="btn btn-outline-danger btn-sm" 
+                                            style="font-size:0.8rem;padding:2px 8px;" 
+                                            onclick="TourPlanner.deleteShipment(${s.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+                            td.appendChild(div);
+
+                            // Event-Listener für Status-Änderung
+                            const select = div.querySelector('.status-select');
+                            select.addEventListener('change', async (e) => {
+                                try {
+                                    const shipmentId = parseInt(e.target.getAttribute('data-shipment-id'));
+                                    const newStatus = e.target.value;
+                                    await this.updateShipmentStatus(shipmentId, newStatus);
+                                } catch (error) {
+                                    console.error('Fehler bei der Statusänderung:', error);
+                                    this.showNotification('Fehler bei der Statusänderung: ' + error.message, 'error');
+                                }
+                            });
+                        });
+                    } else {
+                        td.innerHTML = '<div class="no-shipments">Keine Sendungen</div>';
+                    }
+                    trBody.appendChild(td);
+                });
+                tbody.appendChild(trBody);
+                table.appendChild(tbody);
+                container.appendChild(table);
+
+                // Styles für Drag & Drop
+                const style = document.createElement('style');
+                style.textContent = `
+                    .calendar-shipment {
+                        cursor: move;
+                        transition: all 0.2s ease;
+                    }
+                    .calendar-shipment:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    }
+                    .table-calendar td {
+                        transition: background-color 0.2s ease;
+                    }
+                    .table-calendar td.dragover {
+                        background-color: #e8f4f8 !important;
+                        border: 2px dashed #4CAF50 !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            },
+
+            // Sendungen nach Datum gruppieren
+            groupByDate(shipments) {
+                return shipments.reduce((groups, shipment) => {
+                    const date = shipment.deliveryDate;
+                    if (!groups[date]) {
+                        groups[date] = [];
+                    }
+                    groups[date].push(shipment);
+                    return groups;
+                }, {});
+            },
+
+            // Sendungen nach Abladerreihenfolge sortieren
+            updateShipmentsList() {
+                const container = document.getElementById('shipmentsList');
+                if (!container) return;
+                
+                container.innerHTML = '';
+
+                // Filter-Optionen am Anfang der Liste
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'mb-3';
+                filterDiv.innerHTML = `
+                    <div class="d-flex gap-2 align-items-center mb-3">
+                        <select class="form-select form-select-sm" id="dateFilterType" style="width: auto;">
+                            <option value="day">Tag</option>
+                            <option value="week">Kalenderwoche</option>
+                        </select>
+                        <input type="date" class="form-control form-control-sm" id="dateFilter" style="width: auto;">
+                        <select class="form-select form-select-sm" id="weekFilter" style="width: auto; display: none;">
+                            ${this.generateWeekOptions()}
+                        </select>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="TourPlanner.clearDateFilter()">
+                            <i class="bi bi-x"></i> Filter zurücksetzen
+                        </button>
+                    </div>
+                `;
+                container.appendChild(filterDiv);
+
+                // Event-Listener für Filter
+                const dateFilterType = document.getElementById('dateFilterType');
+                const dateFilter = document.getElementById('dateFilter');
+                const weekFilter = document.getElementById('weekFilter');
+
+                // Setze Initial-Datum wenn nicht gesetzt
+                if (!dateFilter.value) {
+                    dateFilter.value = new Date().toISOString().split('T')[0];
+                }
+
+                // Event-Listener für Filter-Typ
+                dateFilterType.addEventListener('change', () => {
+                    if (dateFilterType.value === 'day') {
+                        dateFilter.style.display = 'block';
+                        weekFilter.style.display = 'none';
+                        this.filterAndDisplayShipments(dateFilterType.value, dateFilter.value, null);
+                    } else {
+                        dateFilter.style.display = 'none';
+                        weekFilter.style.display = 'block';
+                        this.filterAndDisplayShipments(dateFilterType.value, null, weekFilter.value);
+                    }
+                });
+
+                // Event-Listener für Datum und Woche
+                dateFilter.addEventListener('change', () => {
+                    this.filterAndDisplayShipments('day', dateFilter.value, null);
+                });
+
+                weekFilter.addEventListener('change', () => {
+                    this.filterAndDisplayShipments('week', null, weekFilter.value);
+                });
+
+                // Initial-Anzeige
+                this.filterAndDisplayShipments('day', dateFilter.value, null);
+            },
+
+            // Neue Funktion für das Filtern und Anzeigen der Sendungen
+            async filterAndDisplayShipments(filterType, date, week) {
+                const container = document.getElementById('shipmentsList');
+                if (!container) return;
+
+                // Lade Touren für das ausgewählte Datum
+                let tours = [];
+                if (filterType === 'day' && date) {
+                    tours = await this.loadToursByDate(date);
+                }
+
+                // Zeige existierende Touren an
+                const existingToursDiv = container.querySelector('.existing-tours');
+                if (existingToursDiv) {
+                    existingToursDiv.remove();
+                }
+
+                if (tours && tours.length > 0) {
+                    const toursDiv = document.createElement('div');
+                    toursDiv.className = 'mb-4 existing-tours';
+                    toursDiv.innerHTML = `
+                        <h6 class="mb-3">Existierende Touren für ${new Date(date).toLocaleDateString('de-DE')}</h6>
+                        <div class="list-group">
+                            ${tours.map(tour => `
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Tour #${tour.id}</strong><br>
+                                            <small>${tour.shipments.length} Stopps</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="TourPlanner.updateTour(${tour.id}, ${JSON.stringify(tour.shipments)}, ${tour.use_trailer}, ${tour.use_lift})">
+                                                <i class="bi bi-pencil"></i> Bearbeiten
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="TourPlanner.deleteTour(${tour.id})">
+                                                <i class="bi bi-trash"></i> Löschen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    container.appendChild(toursDiv);
+                }
+
+                // Filtere Sendungen
+                let filteredShipments = [...this.state.shipments];
+                
+                // Filtere zuerst abgeschlossene Sendungen heraus
+                filteredShipments = filteredShipments.filter(s => s.status !== 'abgeschlossen');
+
+                // Dann wende den Datums-/Wochenfilter an
+                if (filterType === 'day' && date) {
+                    filteredShipments = filteredShipments.filter(s => {
+                        const shipmentDate = s.lieferdatum || s.deliveryDate;
+                        return shipmentDate === date;
+                    });
+                } else if (filterType === 'week' && week) {
+                    const [year, weekNum] = week.split('-W');
+                    filteredShipments = filteredShipments.filter(s => {
+                        const shipmentDate = new Date(s.lieferdatum || s.deliveryDate);
+                        return this.getISOWeek(shipmentDate) === parseInt(weekNum) &&
+                               shipmentDate.getFullYear() === parseInt(year);
+                    });
+                }
+
+                // Entferne bestehende Sendungsliste
+                const existingShipmentsList = container.querySelector('.shipments-list');
+                if (existingShipmentsList) {
+                    existingShipmentsList.remove();
+                }
+
+                // Erstelle Container für Sendungsliste
+                const shipmentsListDiv = document.createElement('div');
+                shipmentsListDiv.className = 'shipments-list';
+
+                if (filteredShipments.length === 0) {
+                    shipmentsListDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            Keine Sendungen für ${filterType === 'day' ? 
+                                `den ${new Date(date).toLocaleDateString('de-DE')}` : 
+                                `KW ${week.split('-W')[1]}`} verfügbar.
+                        </div>
+                    `;
+                } else {
+                    // Zeige gefilterte Sendungen an
+                    filteredShipments.forEach(shipment => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item';
+                        const checked = this.state.selectedShipments.has(shipment.id);
+                        const unloadOrder = this.state.unloadOrder[shipment.id] || '';
+                        
+                        item.innerHTML = `
+                            <div class="form-check d-flex align-items-center justify-content-between">
+                                <div>
+                                    <input class="form-check-input" type="checkbox" value="${shipment.id}" ${checked ? 'checked' : ''}>
+                                    <label class="form-check-label">
+                                        <strong>${shipment.auNumber}</strong><br>
+                                        ${shipment.customerName}<br>
+                                        <small class="text-muted">${Array.isArray(shipment.packages) ? shipment.packages.length : (shipment.volumen || 1)} Paletten</small><br>
+                                        <small class="text-muted">${new Date(shipment.deliveryDate).toLocaleDateString('de-DE')}</small><br>
+                                        <span class="badge bg-secondary" style="font-size:10px;">${shipment.status || 'neu'}</span>
+                                    </label>
+                                </div>
+                                <div style="min-width:90px;">
+                                    <label style="font-size:11px; color:#666;">Ablader-Nr.</label>
+                                    <input type="number" min="1" class="form-control form-control-sm unload-order-input" 
+                                           style="width:60px; display:inline-block;" 
+                                           value="${unloadOrder}" 
+                                           ${checked ? '' : 'disabled'} 
+                                           data-shipment-id="${shipment.id}">
+                                </div>
+                            </div>
+                        `;
+
+                        // Event-Listener für Checkbox
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        checkbox.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                this.state.selectedShipments.add(shipment.id);
+                                if (!this.state.unloadOrder[shipment.id]) {
+                                    const used = Object.values(this.state.unloadOrder);
+                                    let max = used.length ? Math.max(...used.filter(v => !isNaN(v))) : 0;
+                                    this.state.unloadOrder[shipment.id] = max + 1;
+                                    // Aktualisiere den Input-Wert
+                                    const orderInput = item.querySelector('.unload-order-input');
+                                    orderInput.value = max + 1;
+                                }
+                            } else {
+                                this.state.selectedShipments.delete(shipment.id);
+                                delete this.state.unloadOrder[shipment.id];
+                            }
+                            // Aktiviere/Deaktiviere Ablader-Nr. Input
+                            const orderInput = item.querySelector('.unload-order-input');
+                            orderInput.disabled = !e.target.checked;
+                            orderInput.value = e.target.checked ? (this.state.unloadOrder[shipment.id] || '') : '';
+                            this.updateTruckVisualization();
+                        });
+
+                        // Event-Listener für Ablader-Nr.
+                        const orderInput = item.querySelector('.unload-order-input');
+                        orderInput.addEventListener('input', (e) => {
+                            let val = parseInt(e.target.value);
+                            if (!isNaN(val) && val > 0) {
+                                this.state.unloadOrder[shipment.id] = val;
+                            } else {
+                                delete this.state.unloadOrder[shipment.id];
+                            }
+                            this.updateTruckVisualization();
+                        });
+
+                        shipmentsListDiv.appendChild(item);
+                    });
+                }
+
+                container.appendChild(shipmentsListDiv);
+            },
+
+            // Hilfsfunktion: Generiere Wochen-Optionen
+            generateWeekOptions() {
+                const now = new Date();
+                const currentWeek = this.getISOWeek(now);
+                const currentYear = now.getFullYear();
+                let options = '';
+                
+                // 10 Wochen vor und nach aktueller Woche
+                for (let week = currentWeek - 10; week <= currentWeek + 10; week++) {
+                    let yearToUse = currentYear;
+                    let weekToUse = week;
+                    
+                    // Korrektur für Jahresübergang
+                    if (week <= 0) {
+                        yearToUse--;
+                        weekToUse = 52 + week;
+                    } else if (week > 52) {
+                        yearToUse++;
+                        weekToUse = week - 52;
+                    }
+                    
+                    const weekStr = weekToUse.toString().padStart(2, '0');
+                    const selected = week === currentWeek ? 'selected' : '';
+                    options += `<option value="${yearToUse}-W${weekStr}" ${selected}>KW ${weekStr}/${yearToUse}</option>`;
+                }
+                
+                return options;
+            },
+
+            // Hilfsfunktion: Filter zurücksetzen
+            clearDateFilter() {
+                document.getElementById('dateFilterType').value = 'day';
+                document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
+                document.getElementById('weekFilter').style.display = 'none';
+                document.getElementById('dateFilter').style.display = 'block';
+                this.updateShipmentsList();
+            },
+
+            // Hilfsfunktion für konsistente Farbzuordnung
+            getShipmentColorMap() {
+                const colorPalette = [
+                    '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9', '#92A8D1',
+                    '#955251', '#B565A7', '#009B77', '#DD4124', '#45B8AC',
+                    '#EFC050', '#5B5EA6', '#9B2335', '#DFCFBE', '#55B4B0'
+                ];
+                // Nach Ablader-Nr. aufsteigend sortieren
+                const selectedShipments = this.state.shipments
+                    .filter(s => this.state.selectedShipments.has(s.id))
+                    .slice()
+                    .sort((a, b) => (this.state.unloadOrder[a.id] || 9999) - (this.state.unloadOrder[b.id] || 9999));
+                const colorMap = {};
+                selectedShipments.forEach((s, i) => {
+                    colorMap[s.id] = colorPalette[i % colorPalette.length];
+                });
+                return colorMap;
+            },
+
+            // Neue 2D-Bin-Packing-Logik für optimale Auslastung:
+            placePackages2DOptimal(area, container, packages, placed, notPlaced, colorMap, SCALE, areaType) {
+                const CELL_SIZE = 100; // mm (statt 50)
+                const useHandLift = document.getElementById('useHandLift').checked;
+                const gridCols = Math.floor(area.w / CELL_SIZE);
+                const gridRows = Math.floor(area.h / CELL_SIZE);
+                let grid = Array.from({length: gridRows}, () => Array(gridCols).fill(false));
+                
+                // Wenn Hubwagen aktiviert ist und wir im LKW (nicht Anhänger) sind, reserviere den Platz
+                if (useHandLift && areaType === 'truck') {
+                    const handLiftWidth = Math.ceil(800 / CELL_SIZE);  // 800mm
+                    const handLiftLength = Math.ceil(1200 / CELL_SIZE); // 1200mm
+                    
+                    // Reserviere den Platz ganz hinten im LKW (markiere die Zellen als belegt)
+                    for (let row = 0; row < handLiftWidth; row++) {
+                        for (let col = gridCols - handLiftLength; col < gridCols; col++) {
+                            grid[row][col] = true;
+                        }
+                    }
+                    
+                    // Visualisiere den Hubwagen
+                    const handLiftRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    handLiftRect.setAttribute('x', area.x + (gridCols - handLiftLength) * CELL_SIZE / SCALE);
+                    handLiftRect.setAttribute('y', area.y);
+                    handLiftRect.setAttribute('width', 1200 / SCALE);
+                    handLiftRect.setAttribute('height', 800 / SCALE);
+                    handLiftRect.setAttribute('fill', '#FFD700');
+                    handLiftRect.setAttribute('stroke', '#DAA520');
+                    handLiftRect.setAttribute('stroke-width', '2');
+                    handLiftRect.setAttribute('opacity', '0.8');
+                    container.appendChild(handLiftRect);
+                    
+                    // Füge ein Symbol oder Text für den Hubwagen hinzu
+                    const handLiftText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    handLiftText.setAttribute('x', area.x + (gridCols - handLiftLength/2) * CELL_SIZE / SCALE);
+                    handLiftText.setAttribute('y', area.y + 400 / SCALE);
+                    handLiftText.setAttribute('text-anchor', 'middle');
+                    handLiftText.setAttribute('font-size', '40');
+                    handLiftText.setAttribute('fill', '#8B4513');
+                    handLiftText.textContent = '🔧';
+                    container.appendChild(handLiftText);
+                    
+                    // Beschriftung
+                    const handLiftLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    handLiftLabel.setAttribute('x', area.x + (gridCols - handLiftLength/2) * CELL_SIZE / SCALE);
+                    handLiftLabel.setAttribute('y', area.y + 600 / SCALE);
+                    handLiftLabel.setAttribute('text-anchor', 'middle');
+                    handLiftLabel.setAttribute('font-size', '30');
+                    handLiftLabel.setAttribute('fill', '#8B4513');
+                    handLiftLabel.textContent = 'Hubwagen';
+                    container.appendChild(handLiftLabel);
+                }
+                
+                let allPkgs = packages;
+                let renderLimit = 100; // Maximal 100 Packstücke rendern
+                let rendered = 0;
+                for (let pkg of allPkgs) {
+                    if (rendered >= renderLimit) break;
+                    let best = null;
+                    let minFree = Infinity;
+                    for (let tryRot = 0; tryRot < 2; tryRot++) {
+                        let w = tryRot === 0 ? pkg.length : pkg.width;
+                        let h = tryRot === 0 ? pkg.width : pkg.length;
+                        let pkgCols = Math.ceil(w / CELL_SIZE);
+                        let pkgRows = Math.ceil(h / CELL_SIZE);
+                        for (let col = 0; col <= gridCols - pkgCols; col++) {
+                            for (let row = 0; row <= gridRows - pkgRows; row++) {
+                                let fits = true;
+                                for (let dr = 0; dr < pkgRows && fits; dr++) {
+                                    for (let dc = 0; dc < pkgCols && fits; dc++) {
+                                        if (grid[row + dr][col + dc]) fits = false;
+                                    }
+                                }
+                                if (fits) {
+                                    // Statt Grid-Kopie: Zähle belegte Zellen für dieses Placement
+                                    let used = 0;
+                                    for (let r = 0; r < gridRows; r++) {
+                                        for (let c = 0; c < gridCols; c++) {
+                                            let occupied = grid[r][c];
+                                            // Simuliere Belegung für dieses Placement
+                                            if (!occupied && r >= row && r < row + pkgRows && c >= col && c < col + pkgCols) occupied = true;
+                                            if (occupied) used++;
+                                        }
+                                    }
+                                    let free = gridRows * gridCols - used;
+                                    if (free < minFree || (free === minFree && (!best || col < best.col || (col === best.col && row < best.row)))) {
+                                        minFree = free;
+                                        best = {row, col, w, h, tryRot};
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (best) {
+                        for (let dr = 0; dr < Math.ceil(best.h / CELL_SIZE); dr++) {
+                            for (let dc = 0; dc < Math.ceil(best.w / CELL_SIZE); dc++) {
+                                grid[best.row + dr][best.col + dc] = true;
+                            }
+                        }
+                        let x = best.col * CELL_SIZE;
+                        let y = best.row * CELL_SIZE;
+                        const div = document.createElement('div');
+                        div.className = 'pallet';
+                        div.style.background = colorMap[pkg.shipmentId];
+                        div.style.left = `${x / SCALE}px`;
+                        div.style.top = `${y / SCALE}px`;
+                        div.style.width = `${best.w / SCALE}px`;
+                        div.style.height = `${best.h / SCALE}px`;
+                        div.innerHTML = `<div>${pkg.shipment.auNumber}</div><div style='font-size:9px;'>${pkg.shipment.customerName.substring(0,10)}</div><div style='font-size:8px;'>${best.tryRot ? '90°' : '0°'}</div>`;
+                        div.title = `${pkg.shipment.auNumber}\nKunde: ${pkg.shipment.customerName}\nMaße: ${best.w}×${best.h}mm\nPosition: ${x},${y}mm\nOrientierung: ${best.tryRot ? 'Gedreht (90°)' : 'Normal (0°)'}\nGewicht: ${pkg.weight}kg`;
+                        container.appendChild(div);
+                        placed.push({...pkg, x, y, width: best.w, height: best.h, rotated: !!best.tryRot, area: areaType});
+                        rendered++;
+                    } else {
+                        notPlaced.push(pkg);
+                    }
+                }
+            },
+
+            // LKW-Visualisierung - Echte 2D Draufsicht maßstabsgetreu
+            updateTruckVisualization() {
+                const svg = document.getElementById('truckSvg');
+                svg.innerHTML = '';
+                const useHandLift = document.getElementById('useHandLift').checked;
+                // allPackages: alle Packstücke der ausgewählten Sendungen
+                // NEU: Nach Abladerreihenfolge sortieren
+                let selectedShipments = this.state.shipments.filter(s => this.state.selectedShipments.has(s.id));
+                selectedShipments = selectedShipments.slice().sort((a, b) => {
+                    const orderA = this.state.unloadOrder[a.id] || 9999;
+                    const orderB = this.state.unloadOrder[b.id] || 9999;
+                    // Höchste Zahl = letzte Abladestelle = zuerst laden
+                    return orderB - orderA;
+                });
+                const allPackages = selectedShipments.flatMap(s => s.packages.map(pkg => ({
+                    ...pkg,
+                    shipment: s,
+                    shipmentId: s.id
+                })));
+                // Farbpalette und colorMap für Sendungen
+                const colorMap = this.getShipmentColorMap();
+                const SCALE = 7.75; // 1 Pixel = 7,75 mm
+                // Maße und Maßstab wie gehabt
+                const TRUCK_LENGTH_MM = 6100;
+                const TRUCK_WIDTH_MM = 2500;
+                const TRAILER_LENGTH_MM = 7200;
+                const TRAILER_WIDTH_MM = 2500;
+                const CABIN_LENGTH_MM = 900;
+                const CABIN_WIDTH_MM = 2500;
+                const DEICHSEL_MM = 400;
+                const PADDING_MM = 200;
+                const SVG_WIDTH_MM = CABIN_LENGTH_MM + TRUCK_LENGTH_MM + DEICHSEL_MM + TRAILER_LENGTH_MM + PADDING_MM * 2;
+                const SVG_HEIGHT_MM = Math.max(TRUCK_WIDTH_MM, TRAILER_WIDTH_MM) + PADDING_MM * 2;
+                svg.setAttribute('viewBox', `0 0 ${SVG_WIDTH_MM} ${SVG_HEIGHT_MM}`);
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                // Hilfsfunktion für SVG-Elemente
+                function svgRect(x, y, w, h, fill, stroke, strokeWidth, rx) {
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', x);
+                    rect.setAttribute('y', y);
+                    rect.setAttribute('width', w);
+                    rect.setAttribute('height', h);
+                    rect.setAttribute('fill', fill);
+                    if (stroke) rect.setAttribute('stroke', stroke);
+                    if (strokeWidth) rect.setAttribute('stroke-width', strokeWidth);
+                    if (rx) rect.setAttribute('rx', rx);
+                    return rect;
+                }
+                function svgText(x, y, text, fontSize = 40, color = '#111') {
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    t.setAttribute('x', x);
+                    t.setAttribute('y', y);
+                    t.setAttribute('font-size', fontSize);
+                    t.setAttribute('font-family', 'Arial');
+                    t.setAttribute('fill', color);
+                    t.textContent = text;
+                    return t;
+                }
+                // Fahrerkabine
+                svg.appendChild(svgRect(PADDING_MM, PADDING_MM, CABIN_LENGTH_MM, CABIN_WIDTH_MM, '#888', '#222', 8, 40)).setAttribute('fill-opacity', '0.3');
+                // LKW-Ladefläche
+                svg.appendChild(svgRect(PADDING_MM + CABIN_LENGTH_MM, PADDING_MM, TRUCK_LENGTH_MM, TRUCK_WIDTH_MM, '#fff', '#111', 12, 20)).setAttribute('fill-opacity', '0.3');
+                // Deichsel
+                svg.appendChild(svgRect(PADDING_MM + CABIN_LENGTH_MM + TRUCK_LENGTH_MM, PADDING_MM + TRUCK_WIDTH_MM/2 - 40, DEICHSEL_MM, 80, '#bbb', '#888', 4, 20)).setAttribute('fill-opacity', '0.3');
+                // Anhänger
+                svg.appendChild(svgRect(PADDING_MM + CABIN_LENGTH_MM + TRUCK_LENGTH_MM + DEICHSEL_MM, PADDING_MM, TRAILER_LENGTH_MM, TRAILER_WIDTH_MM, '#f7f7f7', '#444', 8, 20)).setAttribute('fill-opacity', '0.3');
+                // Paletten/Packstücke auf LKW
+                const lkwOffsetX = PADDING_MM + CABIN_LENGTH_MM;
+                const lkwOffsetY = PADDING_MM;
+                const trailerOffsetX = PADDING_MM + CABIN_LENGTH_MM + TRUCK_LENGTH_MM + DEICHSEL_MM;
+                const trailerOffsetY = PADDING_MM;
+                // Paletten auf LKW
+                const placed = [];
+                const notPlaced = [];
+                let truckArea = {x:0, y:0, w:TRUCK_LENGTH_MM, h:TRUCK_WIDTH_MM};
+                let trailerArea = {x:0, y:0, w:TRAILER_LENGTH_MM, h:TRAILER_WIDTH_MM};
+                this.placePackages2DOptimal(truckArea, svg, allPackages, placed, notPlaced, colorMap, SCALE, 'truck');
+                if (useTrailer && notPlaced.length > 0) {
+                    this.placePackages2DOptimal(trailerArea, svg, notPlaced, placed, [], colorMap, SCALE, 'trailer');
+                }
+                // Info-Panel jetzt UNTER der Visualisierung
+                const infoPanel = document.createElement('div');
+                infoPanel.style.cssText = `margin-top: 18px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; font-size: 13px;`;
+                infoPanel.innerHTML = `<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center;">
+                    <div><div style="font-size: 20px; font-weight: bold; color: #007bff;">${placed.length}/${allPackages.length}</div><div style="color: #666;">Packstücke platziert</div></div>
+                    <div><div style="font-size: 20px; font-weight: bold; color: #28a745;">${Math.round((placed.length/(TRUCK_LENGTH_MM*TRUCK_WIDTH_MM/1000000))*100)}%</div><div style="color: #666;">LKW Auslastung</div></div>
+                    <div><div style="font-size: 20px; font-weight: bold; color: #ffc107;">${placed.filter(p=>p.rotated).length}</div><div style="color: #666;">Gedrehte Packstücke</div></div>
+                    <div><div style="font-size: 20px; font-weight: bold; color: #dc3545;">${allPackages.length - placed.length}</div><div style="color: #666;">Passen nicht</div></div>
+                </div>
+                ${placed.length < allPackages.length ? `<div style="margin-top: 10px; color: #dc3545; font-weight: bold;">⚠️ ${allPackages.length - placed.length} Packstücke passen nicht!</div>` : ''}`;
+                svg.appendChild(infoPanel);
+                // Maßstab-Info
+                const scaleInfo = document.createElement('div');
+                scaleInfo.style.cssText = `position: absolute; top: -25px; right: 0; font-size: 12px; color: #666; font-family: monospace;`;
+                scaleInfo.textContent = `Maßstab 1:${Math.round(SCALE)} | LKW: ${TRUCK_LENGTH_MM}×${TRUCK_WIDTH_MM}mm | Anhänger: ${TRAILER_LENGTH_MM}×${TRAILER_WIDTH_MM}mm`;
+                svg.appendChild(scaleInfo);
+                // Paletten/Packstücke auf LKW
+                placed.filter(p=>p.area==='truck').forEach((p,i) => {
+                    const rect = svgRect(lkwOffsetX + p.x, lkwOffsetY + p.y, p.width, p.height, colorMap[p.shipmentId], '#000', 8, 30);
+                    rect.setAttribute('fill-opacity', '1');
+                    svg.appendChild(rect);
+                    // Text mittig in der Palette
+                    const centerX = lkwOffsetX + p.x + p.width/2;
+                    const centerY = lkwOffsetY + p.y + p.height/2;
+                    const fontSize1 = Math.round(p.height * 0.20); // 20% der Palettenhöhe
+                    const fontSize2 = Math.round(p.height * 0.20); // 20% der Palettenhöhe für Kundenname
+                    // Auftragsnummer groß und fett
+                    const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text1.setAttribute('x', centerX);
+                    text1.setAttribute('y', centerY);
+                    text1.setAttribute('font-size', fontSize1);
+                    text1.setAttribute('font-weight', 'bold');
+                    text1.setAttribute('fill', '#222');
+                    text1.setAttribute('text-anchor', 'middle');
+                    text1.setAttribute('dominant-baseline', 'middle');
+                    text1.textContent = p.shipment.auNumber;
+                    svg.appendChild(text1);
+                    // Kundenname gleich groß darunter, 30% unter der Mitte
+                    const text2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text2.setAttribute('x', centerX);
+                    text2.setAttribute('y', centerY + p.height * 0.30);
+                    text2.setAttribute('font-size', fontSize2);
+                    text2.setAttribute('fill', '#222');
+                    text2.setAttribute('text-anchor', 'middle');
+                    text2.setAttribute('dominant-baseline', 'middle');
+                    text2.textContent = p.shipment.customerName;
+                    svg.appendChild(text2);
+                });
+                // Paletten auf Anhänger
+                placed.filter(p=>p.area==='trailer').forEach((p,i) => {
+                    const rect = svgRect(trailerOffsetX + p.x, trailerOffsetY + p.y, p.width, p.height, colorMap[p.shipmentId], '#000', 8, 30);
+                    rect.setAttribute('fill-opacity', '1');
+                    svg.appendChild(rect);
+                    // Text mittig in der Palette
+                    const centerX = trailerOffsetX + p.x + p.width/2;
+                    const centerY = trailerOffsetY + p.y + p.height/2;
+                    const fontSize1 = Math.round(p.height * 0.20);
+                    const fontSize2 = Math.round(p.height * 0.20);
+                    // Auftragsnummer groß und fett
+                    const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text1.setAttribute('x', centerX);
+                    text1.setAttribute('y', centerY);
+                    text1.setAttribute('font-size', fontSize1);
+                    text1.setAttribute('font-weight', 'bold');
+                    text1.setAttribute('fill', '#222');
+                    text1.setAttribute('text-anchor', 'middle');
+                    text1.setAttribute('dominant-baseline', 'middle');
+                    text1.textContent = p.shipment.auNumber;
+                    svg.appendChild(text1);
+                    // Kundenname gleich groß darunter, 30% unter der Mitte
+                    const text2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text2.setAttribute('x', centerX);
+                    text2.setAttribute('y', centerY + p.height * 0.30);
+                    text2.setAttribute('font-size', fontSize2);
+                    text2.setAttribute('fill', '#222');
+                    text2.setAttribute('text-anchor', 'middle');
+                    text2.setAttribute('dominant-baseline', 'middle');
+                    text2.textContent = p.shipment.customerName;
+                    svg.appendChild(text2);
+                });
+            },
+
+            // Geocoding-Anfrage
+            async geocodeAddress(address) {
+                try {
+                    // Normalisiere die Adresse für den Cache-Key
+                    const cacheKey = address.toLowerCase().trim();
+                    
+                    // Prüfe ob die Adresse bereits im Cache ist
+                    if (this.state.geocodingCache[cacheKey]) {
+                        console.log('Nutze gecachte Koordinaten für:', address);
+                        return this.state.geocodingCache[cacheKey];
+                    }
+
+                    console.log('Geocoding für Adresse:', address);
+                    
+                    // Adresse bereinigen
+                    let searchAddress = address
+                        .replace(/strasse/i, 'straße')
+                        .replace(/str\./i, 'straße')
+                        .trim();
+                    
+                    // Deutschland anhängen wenn nicht vorhanden
+                    if (!searchAddress.toLowerCase().includes('deutschland')) {
+                        searchAddress += ', Deutschland';
+                    }
+
+                    const searchQuery = encodeURIComponent(searchAddress);
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=1&countrycodes=de`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Geocoding fehlgeschlagen');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data && data.length > 0) {
+                        const coords = {
+                            lat: parseFloat(data[0].lat),
+                            lng: parseFloat(data[0].lon)
+                        };
+                        
+                        // Speichere das Ergebnis im Cache
+                        this.state.geocodingCache[cacheKey] = coords;
+                        
+                        return coords;
+                    }
+                    
+                    throw new Error('Adresse nicht gefunden');
+                } catch (error) {
+                    console.error('Geocoding Fehler:', error);
+                    throw error;
+                }
+            },
+
+            // Tour optimieren
+            async optimizeTour() {
+                try {
+                    const DEPOT_ADDRESS = 'Robert-Bosch-Straße 1, 68542 Heddesheim';
+                    
+                    let selectedShipments = this.state.shipments.filter(s => this.state.selectedShipments.has(s.id));
+                    if (selectedShipments.length === 0) {
+                        this.showNotification('Bitte wählen Sie mindestens eine Sendung aus', 'warning');
+                        return;
+                    }
+
+                    // Sortiere nach Abladerreihenfolge
+                    selectedShipments = selectedShipments.sort((a, b) => 
+                        (this.state.unloadOrder[a.id] || 9999) - (this.state.unloadOrder[b.id] || 9999)
+                    );
+
+                    // Hole Koordinaten für Depot
+                    const depotCoords = await this.geocodeAddress(DEPOT_ADDRESS);
+                    
+                    // Hole Koordinaten für alle Abladestellen
+                    const stopCoords = [];
+                    for (const shipment of selectedShipments) {
+                        const address = shipment.ort ? shipment.ort + ', Deutschland' : 
+                                      (shipment.adresse + ', ' + shipment.plz + ' ' + shipment.ort + ', Deutschland');
+                        console.log('Geocoding für Adresse:', address);
+                        const coords = await this.geocodeAddress(address);
+                        stopCoords.push(coords);
+                    }
+
+                    // Baue die komplette Route: Depot -> Alle Stops -> Depot
+                    const allCoords = [depotCoords, ...stopCoords, depotCoords];
+                    
+                    // Baue die OSRM-URL mit allen Wegpunkten und LKW-Profil
+                    const waypoints = allCoords.map(coord => `${coord.lng},${coord.lat}`).join(';');
+                    const routeUrl = `https://router.project-osrm.org/route/v1/driving-hgv/${waypoints}?overview=full&geometries=geojson&steps=true`;
+                    
+                    console.log('Berechne LKW-Route mit Wegpunkten:', waypoints);
+                    const response = await fetch(routeUrl);
+                    const routeData = await response.json();
+
+                    if (routeData.code !== 'Ok' || !routeData.routes || !routeData.routes[0]) {
+                        throw new Error('Keine Route gefunden');
+                    }
+
+                    // Route anzeigen
+                    if (this.state.routeLayer) {
+                        this.state.map.removeLayer(this.state.routeLayer);
+                    }
+                    if (this.state.markersLayer) {
+                        this.state.map.removeLayer(this.state.markersLayer);
+                    }
+
+                    // Erstelle Layer für Route und Marker
+                    this.state.routeLayer = L.layerGroup().addTo(this.state.map);
+                    this.state.markersLayer = L.layerGroup().addTo(this.state.map);
+
+                    // Zeichne die Route
+                    const routeCoords = routeData.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    const routeLine = L.polyline(routeCoords, {
+                        color: '#0066cc',
+                        weight: 4,
+                        opacity: 0.8
+                    }).addTo(this.state.routeLayer);
+
+                    // Füge Marker für alle Stopps hinzu
+                    allCoords.forEach((coord, index) => {
+                        let label, color;
+                        if (index === 0 || index === allCoords.length - 1) {
+                            // Depot (Start/Ende)
+                            label = 'D';
+                            color = '#003366';
+                        } else {
+                            // Abladestelle mit Nummer
+                            label = index.toString();
+                            color = '#28a745';
+                        }
+
+                        const icon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background-color:${color};color:white;border-radius:50%;width:30px;height:30px;text-align:center;line-height:30px;">${label}</div>`,
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                        
+                        const marker = L.marker([coord.lat, coord.lng], { icon });
+                        
+                        // Füge Popup mit Adressinfo hinzu
+                        if (index > 0 && index < allCoords.length - 1) {
+                            const shipment = selectedShipments[index - 1];
+                            marker.bindPopup(`
+                                <b>${shipment.auNumber}</b><br>
+                                ${shipment.customerName}<br>
+                                Ablader-Nr: ${this.state.unloadOrder[shipment.id]}
+                            `);
+                        }
+                        
+                        marker.addTo(this.state.markersLayer);
+                    });
+
+                    // Zentriere die Karte auf die Route
+                    const bounds = routeLine.getBounds();
+                    this.state.map.fitBounds(bounds, { padding: [50, 50] });
+
+                    // Zeige Routeninformationen
+                    const duration = Math.round(routeData.routes[0].duration / 60); // Minuten
+                    const distance = Math.round(routeData.routes[0].distance / 1000); // Kilometer
+                    
+                    // Konvertiere Minuten in Stunden und Minuten
+                    const hours = Math.floor(duration / 60);
+                    const minutes = duration % 60;
+                    const durationText = hours > 0 ? 
+                        `${hours} Std ${minutes} Min` : 
+                        `${minutes} Min`;
+                    
+                    const infoPanel = document.createElement('div');
+                    infoPanel.className = 'card mt-3';
+                    
+                    // Speichere die Daten temporär
+                    this.currentRouteData = {
+                        distance,
+                        duration,
+                        stops: selectedShipments.length,
+                        shipments: selectedShipments,
+                        routeData: routeData
+                    };
+                    
+                    infoPanel.innerHTML = `
+                        <div class="card-body">
+                            <h6 class="card-title">Routeninformationen (LKW)</h6>
+                            <div class="d-flex justify-content-around text-center">
+                                <div>
+                                    <div class="h4 mb-0">${distance} km</div>
+                                    <small class="text-muted">Gesamtstrecke</small>
+                                </div>
+                                <div>
+                                    <div class="h4 mb-0">${durationText}</div>
+                                    <small class="text-muted">Fahrzeit (ohne Pausen)</small>
+                                </div>
+                                <div>
+                                    <div class="h4 mb-0">${selectedShipments.length}</div>
+                                    <small class="text-muted">Stopps</small>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button class="btn btn-primary" onclick="TourPlanner.createTourReport()">
+                                    <i class="bi bi-file-pdf"></i> Tourenbericht erstellen
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    const mapContainer = document.getElementById('map').parentElement;
+                    const existingInfoPanel = mapContainer.querySelector('.card');
+                    if (existingInfoPanel) {
+                        existingInfoPanel.remove();
+                    }
+                    mapContainer.appendChild(infoPanel);
+
+                    this.showNotification('LKW-Route wurde berechnet', 'success');
+
+                } catch (error) {
+                    console.error('Fehler bei der Routenberechnung:', error);
+                    this.showNotification('Fehler bei der Routenberechnung: ' + error.message, 'error');
+                }
+            },
+
+            // Tour löschen
+            async deleteTour(tourId) {
+                if (confirm('Möchten Sie diese Tour wirklich löschen?')) {
+                    try {
+                        await this.api.deleteTour(tourId);
+                        this.showNotification('Tour erfolgreich gelöscht', 'success');
+                        await this.loadShipments();
+                        this.updateUI();
+                    } catch (error) {
+                        console.error('Fehler beim Löschen der Tour:', error);
+                        this.showNotification('Fehler beim Löschen der Tour: ' + error.message, 'error');
+                    }
+                }
+            },
+
+            // Touren für ein Datum laden
+            async loadToursByDate(date) {
+                try {
+                    return await this.api.getToursByDate(date);
+                } catch (error) {
+                    console.error('Fehler beim Laden der Touren:', error);
+                    this.showNotification('Fehler beim Laden der Touren: ' + error.message, 'error');
+                    return [];
+                }
+            },
+
+            // Sendungen speichern
+            async saveShipments() {
+                try {
+                    // Speichere jede Sendung einzeln über die API
+                    for (const shipment of this.state.shipments) {
+                        const dbShipment = {
+                            id: shipment.id,
+                            sendungsnummer: shipment.sendungsnummer || shipment.auNumber,
+                            kunde: shipment.kunde || shipment.customerName,
+                            adresse: shipment.adresse,
+                            plz: shipment.plz,
+                            ort: shipment.ort,
+                            gewicht: shipment.gewicht,
+                            volumen: shipment.volumen,
+                            lieferdatum: shipment.lieferdatum || shipment.deliveryDate,
+                            zeitfenster: shipment.zeitfenster,
+                            status: shipment.status,
+                            tour_id: shipment.tour_id
+                        };
+
+                        if (shipment.id) {
+                            // Existierende Sendung aktualisieren
+                            await this.api.updateShipment(shipment.id, dbShipment);
+                        } else {
+                            // Neue Sendung anlegen
+                            const result = await this.api.createShipment(dbShipment);
+                            shipment.id = result.id;
+                        }
+                    }
+                    this.showNotification('Sendungen erfolgreich gespeichert', 'success');
+                    await this.loadShipments();
+                } catch (error) {
+                    console.error('Fehler beim Speichern der Sendungen:', error);
+                    this.showNotification('Fehler beim Speichern der Sendungen: ' + error.message, 'error');
+                }
+            },
+
+            // Benachrichtigung anzeigen
+            showNotification(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast position-fixed bottom-0 end-0 m-3`;
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                
+                const bgClass = type === 'success' ? 'bg-success' :
+                              type === 'error' ? 'bg-danger' :
+                              type === 'warning' ? 'bg-warning' : 'bg-info';
+                
+                toast.innerHTML = `
+                    <div class="toast-header ${bgClass} text-white">
+                        <strong class="me-auto">Tourenplaner</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                toast.addEventListener('hidden.bs.toast', () => {
+                    toast.remove();
+                });
+            },
+
+            // Vorschläge anzeigen
+            async showSuggestions() {
+                try {
+                    const suggestions = await this.generateSuggestions();
+                    this.state.suggestions = suggestions; // Speichere im state
+                    
+                    // Finde den overview Tab-Content
+                    const overviewTab = document.getElementById('overview');
+                    if (!overviewTab) return;
+
+                    // Finde oder erstelle den Container für Vorschläge
+                    let panel = document.getElementById('suggestionPanel');
+                    if (!panel) {
+                        panel = document.createElement('div');
+                        panel.id = 'suggestionPanel';
+                        panel.className = 'card mt-4';
+                    }
+
+                    // Wenn keine Vorschläge vorhanden sind
+                    if (!suggestions || suggestions.length === 0) {
+                        panel.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-lightbulb" style="color: var(--accent-color);"></i> 
+                                    Optimierungsvorschläge
+                                </h5>
+                                <p class="text-muted">Aktuell keine Optimierungsvorschläge verfügbar.</p>
+                            </div>
+                        `;
+                    } else {
+                        // Panel mit Vorschlägen füllen
+                        panel.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-lightbulb" style="color: var(--accent-color);"></i> 
+                                    Optimierungsvorschläge (${suggestions.length})
+                                </h5>
+                                <div class="list-group">
+                                    ${suggestions.map((s, i) => `
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="mb-2" style="color: var(--primary-color);">
+                                                        ${s.message}
+                                                    </div>
+                                                </div>
+                                                <button class="btn btn-success btn-sm ms-3" onclick="TourPlanner.applySuggestion(${i})">
+                                                    <i class="bi bi-check2"></i> Umsetzen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // Füge das Panel in den overview Tab ein
+                    const weeklyToursContainer = overviewTab.querySelector('#weeklyTours');
+                    if (weeklyToursContainer) {
+                        const existingPanel = weeklyToursContainer.querySelector('#suggestionPanel');
+                        if (existingPanel) {
+                            existingPanel.remove();
+                        }
+                        weeklyToursContainer.appendChild(panel);
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Anzeigen der Vorschläge:', error);
+                }
+            },
+
+            // Vorschläge generieren
+            async generateSuggestions() {
+                const suggestions = [];
+                const shipments = this.state.shipments;
+
+                // Gruppiere Sendungen nach Datum
+                const shipmentsByDate = {};
+                shipments.forEach(s => {
+                    const date = s.deliveryDate || s.lieferdatum;
+                    if (!date) return;
+                    if (!shipmentsByDate[date]) {
+                        shipmentsByDate[date] = [];
+                    }
+                    shipmentsByDate[date].push(s);
+                });
+
+                // Analysiere benachbarte Tage
+                for (let date in shipmentsByDate) {
+                    const currentDate = new Date(date);
+                    // Prüfe ±2 Tage
+                    for (let i = -2; i <= 2; i++) {
+                        if (i === 0) continue;
+                        const compareDate = new Date(currentDate);
+                        compareDate.setDate(currentDate.getDate() + i);
+                        const compareDateStr = compareDate.toISOString().slice(0, 10);
+                        
+                        if (shipmentsByDate[compareDateStr]) {
+                            // Vergleiche Sendungen
+                            for (let s1 of shipmentsByDate[date]) {
+                                for (let s2 of shipmentsByDate[compareDateStr]) {
+                                    if (s1.status === 'abgeschlossen' || s2.status === 'abgeschlossen') continue;
+                                    
+                                    // Prüfe ob Sendungen kombinierbar sind
+                                    const totalPallets = (s1.packages?.length || s1.volumen || 1) + 
+                                                       (s2.packages?.length || s2.volumen || 1);
+                                    
+                                    if (totalPallets <= 33) { // Max LKW Kapazität
+                                        suggestions.push({
+                                            type: 'combine',
+                                            date: date < compareDateStr ? date : compareDateStr,
+                                            shipment1: s1,
+                                            shipment2: s2,
+                                            pallets: totalPallets,
+                                            message: `Sendungen ${s1.auNumber} und ${s2.auNumber} könnten am ${new Date(date < compareDateStr ? date : compareDateStr).toLocaleDateString('de-DE')} kombiniert werden.`
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return suggestions;
+            },
+
+            // Neue Funktion für die PDF-Generierung
+            generateTourReport(data) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.width;
+                
+                // Hilfsfunktionen
+                const addCenteredText = (text, y, size = 12) => {
+                    doc.setFontSize(size);
+                    const textWidth = doc.getStringUnitWidth(text) * size / doc.internal.scaleFactor;
+                    doc.text(text, (pageWidth - textWidth) / 2, y);
+                };
+
+                // Berechne zusätzliche Zeiten
+                const calculateAdditionalTimes = (stops, distance, baseDuration) => {
+                    const registrationTimePerStop = 10; // Minuten pro Anmeldung
+                    const unloadingTimePerPallet = 3; // Minuten pro Palette
+                    const totalPallets = data.shipments.reduce((sum, s) => sum + (s.packages?.length || s.volumen || 1), 0);
+                    
+                    // Gesetzliche Pausen
+                    const drivingHours = baseDuration / 60;
+                    const requiredBreaks = Math.floor(drivingHours / 4.5); // Nach 4,5h Fahrt 45min Pause
+                    const breakTime = requiredBreaks * 45; // Minuten
+                    
+                    return {
+                        registration: stops * registrationTimePerStop,
+                        unloading: totalPallets * unloadingTimePerPallet,
+                        breaks: breakTime,
+                        total: (stops * registrationTimePerStop) + (totalPallets * unloadingTimePerPallet) + breakTime
+                    };
+                };
+
+                // Header
+                doc.setFillColor(0, 51, 102); // Dunkelblau
+                doc.rect(0, 0, pageWidth, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                addCenteredText('Tourenbericht', 25);
+                doc.setTextColor(0, 0, 0);
+
+                // Allgemeine Informationen
+                doc.setFontSize(14);
+                doc.text('Allgemeine Informationen', 20, 50);
+                doc.setFontSize(12);
+                doc.text(`Datum: ${new Date().toLocaleDateString('de-DE')}`, 20, 60);
+                doc.text(`Gesamtstrecke: ${data.distance} km`, 20, 70);
+                
+                // Zeitplanung
+                const additionalTimes = calculateAdditionalTimes(data.stops, data.distance, data.duration);
+                const totalMinutes = data.duration + additionalTimes.total;
+                const totalHours = Math.floor(totalMinutes / 60);
+                const remainingMinutes = totalMinutes % 60;
+                
+                doc.setFontSize(14);
+                doc.text('Zeitplanung', 20, 90);
+                doc.setFontSize(12);
+                doc.text([
+                    `Reine Fahrzeit: ${Math.floor(data.duration / 60)} Std ${data.duration % 60} Min`,
+                    `Anmeldezeiten: ${additionalTimes.registration} Min`,
+                    `Entladezeiten: ${additionalTimes.unloading} Min`,
+                    `Gesetzliche Pausen: ${additionalTimes.breaks} Min`,
+                    `Gesamtzeit: ${totalHours} Std ${remainingMinutes} Min`
+                ], 20, 100);
+
+                // Stopps
+                doc.setFontSize(14);
+                doc.text('Ladestopps', 20, 140);
+                
+                const stopsData = data.shipments.map((s, index) => [
+                    (index + 1).toString(),
+                    s.auNumber,
+                    s.customerName,
+                    `${s.adresse}, ${s.plz} ${s.ort}`,
+                    `${s.packages?.length || s.volumen || 1} Pal.`
+                ]);
+
+                doc.autoTable({
+                    startY: 145,
+                    head: [['#', 'Auftrag', 'Kunde', 'Adresse', 'Menge']],
+                    body: stopsData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [0, 51, 102] }
+                });
+
+                // Wichtige Hinweise
+                const yPos = doc.autoTable.previous.finalY + 20;
+                doc.setFontSize(14);
+                doc.text('Wichtige Hinweise', 20, yPos);
+                doc.setFontSize(12);
+                doc.text([
+                    '• Bitte beachten Sie die gesetzlichen Lenk- und Ruhezeiten',
+                    '• Ladungssicherung vor Fahrtantritt prüfen',
+                    '• Bei Verzögerungen bitte umgehend Disposition informieren',
+                    '• Dokumente vollständig unterschreiben lassen'
+                ], 20, yPos + 10);
+
+                // Unterschriftenfelder
+                doc.line(20, 240, 100, 240);
+                doc.line(120, 240, 190, 240);
+                doc.setFontSize(10);
+                doc.text('Unterschrift Verlader', 20, 245);
+                doc.text('Unterschrift Fahrer', 120, 245);
+
+                // PDF öffnen
+                doc.save('Tourenbericht.pdf');
+            },
+
+            // Neue Methode zum Aufrufen des PDF-Generators
+            createTourReport() {
+                if (!this.currentRouteData) {
+                    this.showNotification('Keine Routendaten verfügbar', 'error');
+                    return;
+                }
+
+                const data = this.currentRouteData;
+                const useTrailer = document.getElementById('useTrailer').checked;
+                
+                // Berechne Gewichte
+                let totalWeight = 0;
+                const weightDetails = data.shipments.map(s => {
+                    const shipmentWeight = s.gewicht || 0;
+                    totalWeight += shipmentWeight;
+                    return {
+                        auNumber: s.auNumber,
+                        weight: shipmentWeight
+                    };
+                });
+
+                // Prüfe Gewichtsgrenzen
+                const truckPayload = Math.min(totalWeight, this.TRUCK_MAX_WEIGHT - this.TRUCK_EMPTY_WEIGHT);
+                const trailerPayload = useTrailer ? Math.max(0, totalWeight - truckPayload) : 0;
+                
+                const weightWarnings = [];
+                if (truckPayload > (this.TRUCK_MAX_WEIGHT - this.TRUCK_EMPTY_WEIGHT)) {
+                    weightWarnings.push('⚠️ Maximales LKW-Gewicht überschritten!');
+                }
+                if (useTrailer && trailerPayload > (this.TRAILER_MAX_WEIGHT - this.TRAILER_EMPTY_WEIGHT)) {
+                    weightWarnings.push('⚠️ Maximales Anhänger-Gewicht überschritten!');
+                }
+
+                // Berechne zusätzliche Zeiten
+                const additionalTimes = this.calculateAdditionalTimes(data);
+                const totalMinutes = data.duration + additionalTimes.total;
+                const totalHours = Math.floor(totalMinutes / 60);
+                const remainingMinutes = totalMinutes % 60;
+
+                // Erstelle HTML für Modal
+                const content = document.getElementById('tourenberichtContent');
+                content.innerHTML = `
+                    <div class="container-fluid">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Allgemeine Informationen</h4>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Datum:</td>
+                                        <td>${new Date().toLocaleDateString('de-DE')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gesamtstrecke:</td>
+                                        <td>${data.distance} km</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Anzahl Stopps:</td>
+                                        <td>${data.stops}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Gewichtsinformationen</h4>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Gesamtgewicht Ladung:</td>
+                                        <td>${totalWeight} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LKW Leergewicht:</td>
+                                        <td>${this.TRUCK_EMPTY_WEIGHT} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LKW Zuladung:</td>
+                                        <td>${truckPayload} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LKW Gesamtgewicht:</td>
+                                        <td class="${(this.TRUCK_EMPTY_WEIGHT + truckPayload) > this.TRUCK_MAX_WEIGHT ? 'text-danger' : ''}">${this.TRUCK_EMPTY_WEIGHT + truckPayload} kg / ${this.TRUCK_MAX_WEIGHT} kg</td>
+                                    </tr>
+                                    ${useTrailer ? `
+                                    <tr>
+                                        <td>Anhänger Leergewicht:</td>
+                                        <td>${this.TRAILER_EMPTY_WEIGHT} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Anhänger Zuladung:</td>
+                                        <td>${trailerPayload} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Anhänger Gesamtgewicht:</td>
+                                        <td class="${(this.TRAILER_EMPTY_WEIGHT + trailerPayload) > this.TRAILER_MAX_WEIGHT ? 'text-danger' : ''}">${this.TRAILER_EMPTY_WEIGHT + trailerPayload} kg / ${this.TRAILER_MAX_WEIGHT} kg</td>
+                                    </tr>
+                                    ` : ''}
+                                </table>
+                                ${weightWarnings.map(w => `<div class="alert alert-danger">${w}</div>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Zeitplanung</h4>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Reine Fahrzeit:</td>
+                                        <td>${Math.floor(data.duration / 60)} Std ${data.duration % 60} Min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Anmeldezeiten:</td>
+                                        <td>${additionalTimes.registration} Min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Entladezeiten:</td>
+                                        <td>${additionalTimes.unloading} Min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gesetzliche Pausen:</td>
+                                        <td>${additionalTimes.breaks} Min</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>Gesamtzeit:</strong></td>
+                                        <td><strong>${totalHours} Std ${remainingMinutes} Min</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <h4>Ladestopps</h4>
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Auftrag</th>
+                                            <th>Kunde</th>
+                                            <th>Adresse</th>
+                                            <th>Menge</th>
+                                            <th>Gewicht</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.shipments.map((s, i) => `
+                                            <tr>
+                                                <td>${i + 1}</td>
+                                                <td>${s.auNumber}</td>
+                                                <td>${s.customerName}</td>
+                                                <td>${s.adresse}, ${s.plz} ${s.ort}</td>
+                                                <td>${s.packages?.length || s.volumen || 1} Pal.</td>
+                                                <td>${s.gewicht || 0} kg</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Zeige Modal
+                const modal = new bootstrap.Modal(document.getElementById('tourenberichtModal'));
+                modal.show();
+            },
+
+            // Aktualisierte generateTourReport Funktion für PDF-Erstellung
+            generateTourReport() {
+                const data = this.currentRouteData;
+                if (!data) {
+                    this.showNotification('Keine Routendaten verfügbar', 'error');
+                    return;
+                }
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    const pageWidth = doc.internal.pageSize.width;
+
+                    // Berechne Gewichte
+                    let totalWeight = 0;
+                    data.shipments.forEach(s => {
+                        totalWeight += s.gewicht || 0;
+                    });
+                    const useTrailer = document.getElementById('useTrailer').checked;
+                    const truckPayload = Math.min(totalWeight, this.TRUCK_MAX_WEIGHT - this.TRUCK_EMPTY_WEIGHT);
+                    const trailerPayload = useTrailer ? Math.max(0, totalWeight - truckPayload) : 0;
+
+                    // Header
+                    doc.setFillColor(0, 51, 102);
+                    doc.rect(0, 0, pageWidth, 40, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(24);
+                    const title = 'Tourenbericht';
+                    const titleWidth = doc.getStringUnitWidth(title) * 24 / doc.internal.scaleFactor;
+                    doc.text(title, (pageWidth - titleWidth) / 2, 25);
+                    doc.setTextColor(0, 0, 0);
+
+                    let yPos = 50;
+                    const lineHeight = 7;
+
+                    // Allgemeine Informationen
+                    doc.setFontSize(14);
+                    doc.text('Allgemeine Informationen', 20, yPos);
+                    yPos += lineHeight * 2;
+                    doc.setFontSize(12);
+                    doc.text([
+                        `Datum: ${new Date().toLocaleDateString('de-DE')}`,
+                        `Gesamtstrecke: ${data.distance} km`,
+                        `Anzahl Stopps: ${data.stops}`
+                    ], 20, yPos);
+                    yPos += lineHeight * 4;
+
+                    // Gewichtsinformationen
+                    doc.setFontSize(14);
+                    doc.text('Gewichtsinformationen', 20, yPos);
+                    yPos += lineHeight * 2;
+                    doc.setFontSize(12);
+                    const weightInfo = [
+                        `Gesamtgewicht Ladung: ${totalWeight} kg`,
+                        `LKW Leergewicht: ${this.TRUCK_EMPTY_WEIGHT} kg`,
+                        `LKW Zuladung: ${truckPayload} kg`,
+                        `LKW Gesamtgewicht: ${this.TRUCK_EMPTY_WEIGHT + truckPayload} kg / ${this.TRUCK_MAX_WEIGHT} kg`
+                    ];
+                    if (useTrailer) {
+                        weightInfo.push(
+                            `Anhänger Leergewicht: ${this.TRAILER_EMPTY_WEIGHT} kg`,
+                            `Anhänger Zuladung: ${trailerPayload} kg`,
+                            `Anhänger Gesamtgewicht: ${this.TRAILER_EMPTY_WEIGHT + trailerPayload} kg / ${this.TRAILER_MAX_WEIGHT} kg`
+                        );
+                    }
+                    doc.text(weightInfo, 20, yPos);
+                    yPos += lineHeight * (weightInfo.length + 2);
+
+                    // Zeitplanung
+                    const additionalTimes = this.calculateAdditionalTimes(data);
+                    const totalMinutes = data.duration + additionalTimes.total;
+                    const totalHours = Math.floor(totalMinutes / 60);
+                    const remainingMinutes = totalMinutes % 60;
+
+                    doc.setFontSize(14);
+                    doc.text('Zeitplanung', 20, yPos);
+                    yPos += lineHeight * 2;
+                    doc.setFontSize(12);
+                    doc.text([
+                        `Reine Fahrzeit: ${Math.floor(data.duration / 60)} Std ${data.duration % 60} Min`,
+                        `Anmeldezeiten: ${additionalTimes.registration} Min`,
+                        `Entladezeiten: ${additionalTimes.unloading} Min`,
+                        `Gesetzliche Pausen: ${additionalTimes.breaks} Min`,
+                        `Gesamtzeit: ${totalHours} Std ${remainingMinutes} Min`
+                    ], 20, yPos);
+                    yPos += lineHeight * 7;
+
+                    // Ladestopps
+                    doc.setFontSize(14);
+                    doc.text('Ladestopps', 20, yPos);
+                    yPos += lineHeight;
+
+                    // Tabelle mit Ladestopps
+                    const stopsData = data.shipments.map((s, index) => [
+                        (index + 1).toString(),
+                        s.auNumber,
+                        s.customerName,
+                        `${s.adresse}, ${s.plz} ${s.ort}`,
+                        `${s.packages?.length || s.volumen || 1} Pal.`,
+                        `${s.gewicht || 0} kg`
+                    ]);
+
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [['#', 'Auftrag', 'Kunde', 'Adresse', 'Menge', 'Gewicht']],
+                        body: stopsData,
+                        theme: 'striped',
+                        headStyles: { fillColor: [0, 51, 102] },
+                        margin: { top: 20 }
+                    });
+
+                    yPos = doc.autoTable.previous.finalY + 20;
+
+                    // Wichtige Hinweise
+                    doc.setFontSize(14);
+                    doc.text('Wichtige Hinweise', 20, yPos);
+                    yPos += lineHeight * 2;
+                    doc.setFontSize(12);
+                    doc.text([
+                        '• Bitte beachten Sie die gesetzlichen Lenk- und Ruhezeiten',
+                        '• Ladungssicherung vor Fahrtantritt prüfen',
+                        '• Bei Verzögerungen bitte umgehend Disposition informieren',
+                        '• Dokumente vollständig unterschreiben lassen'
+                    ], 20, yPos);
+
+                    yPos += lineHeight * 6;
+
+                    // Unterschriftenfelder
+                    doc.line(20, yPos, 100, yPos);
+                    doc.line(120, yPos, 190, yPos);
+                    doc.setFontSize(10);
+                    doc.text('Unterschrift Verlader', 20, yPos + 5);
+                    doc.text('Unterschrift Fahrer', 120, yPos + 5);
+
+                    // PDF speichern
+                    doc.save('Tourenbericht.pdf');
+
+                    // Markiere alle Sendungen in der Tour als abgeschlossen
+                    data.shipments.forEach(async (shipment) => {
+                        try {
+                            // Aktualisiere den Status in der Datenbank
+                            const updatedShipment = {
+                                ...shipment,
+                                status: 'abgeschlossen'
+                            };
+                            
+                            await this.api.updateShipment(shipment.id, updatedShipment);
+                            
+                            // Aktualisiere auch den lokalen State
+                            const index = this.state.shipments.findIndex(s => s.id === shipment.id);
+                            if (index !== -1) {
+                                this.state.shipments[index] = updatedShipment;
+                            }
+                        } catch (error) {
+                            console.error('Fehler beim Aktualisieren des Sendungsstatus:', error);
+                            this.showNotification(`Fehler beim Aktualisieren der Sendung ${shipment.auNumber}`, 'error');
+                        }
+                    });
+
+                    // Zeige Erfolgsmeldung
+                    this.showNotification('Tourenbericht wurde erstellt und Sendungen als abgeschlossen markiert', 'success');
+                    
+                    // Aktualisiere die UI
+                    this.updateUI();
+                    
+                    // Leere die aktuelle Route
+                    this.currentRouteData = null;
+
+                } catch (error) {
+                    console.error('Fehler bei der Berichterstellung:', error);
+                    this.showNotification('Fehler bei der Berichterstellung: ' + error.message, 'error');
+                }
+            },
+
+            calculateAdditionalTimes(data) {
+                // Basis-Zeiten pro Stopp
+                const registrationTimePerStop = 10; // Minuten für Anmeldung
+                const unloadingTimePerPallet = 5;   // Minuten pro Palette
+                const breakTimeThreshold = 270;      // 4.5 Stunden in Minuten
+                const requiredBreakTime = 45;        // Gesetzliche Pausenzeit in Minuten
+
+                let totalRegistrationTime = data.stops * registrationTimePerStop;
+                
+                // Berechne Entladezeit basierend auf Paletten
+                let totalUnloadingTime = 0;
+                data.shipments.forEach(shipment => {
+                    const pallets = shipment.packages?.length || shipment.volumen || 1;
+                    totalUnloadingTime += pallets * unloadingTimePerPallet;
+                });
+
+                // Berechne notwendige Pausen
+                let totalBreakTime = 0;
+                const totalDrivingTime = data.duration;
+                if (totalDrivingTime > breakTimeThreshold) {
+                    totalBreakTime = Math.ceil(totalDrivingTime / breakTimeThreshold) * requiredBreakTime;
+                }
+
+                return {
+                    registration: totalRegistrationTime,
+                    unloading: totalUnloadingTime,
+                    breaks: totalBreakTime,
+                    total: totalRegistrationTime + totalUnloadingTime + totalBreakTime
+                };
+            },
+
+            applySuggestion(index) {
+                try {
+                    const suggestion = this.state.suggestions[index];
+                    if (!suggestion) {
+                        this.showNotification('Vorschlag nicht gefunden', 'error');
+                        return;
+                    }
+
+                    // Übernehme die vorgeschlagenen Änderungen
+                    if (suggestion.type === 'combine') {
+                        // Verschiebe die zweite Sendung zum Datum der ersten
+                        const shipment2 = this.state.shipments.find(s => s.id === suggestion.shipment2.id);
+                        if (shipment2) {
+                            shipment2.lieferdatum = suggestion.date;
+                            shipment2.deliveryDate = suggestion.date;
+                        }
+                    }
+
+                    // Aktualisiere die UI
+                    this.updateUI();
+                    this.showNotification('Vorschlag wurde erfolgreich umgesetzt', 'success');
+                } catch (error) {
+                    console.error('Fehler beim Umsetzen des Vorschlags:', error);
+                    this.showNotification('Fehler beim Umsetzen des Vorschlags', 'error');
+                }
+            }
+        };
+
+        // Initialisierung nach DOM-Laden
+        document.addEventListener('DOMContentLoaded', () => {
+            TourPlanner.init();
+        });
+
+        // Dynamische Zeilen für Packstück-Tabelle werden über onclick-Handler gesteuert
+    </script>
+</body>
+</html> 
