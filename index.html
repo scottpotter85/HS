@@ -1491,9 +1491,7 @@ SOFTWARE.
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         // API-Basis-URL definieren und validieren
-        const API_BASE_URL = window.location.protocol === 'file:' 
-            ? 'http://localhost:5050'  // Lokale Entwicklung
-            : window.location.origin;  // Produktionsumgebung
+        const API_BASE_URL = window.location.origin;  // Verwendet automatisch die aktuelle Domain
         
         console.log('Verwende API-Basis-URL:', API_BASE_URL);
 

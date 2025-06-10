@@ -22,6 +22,44 @@ if (!fs.existsSync(DB_PATH)) {
     fs.mkdirSync(DB_PATH, { recursive: true });
 }
 
+// Benutzer-Datenbank
+const dbUsers = new sqlite3.Database(path.join(DB_PATH, 'users.db'));
+console.log('Benutzer-Datenbank initialisiert');
+
+// Benutzer-Tabelle erstellen und Standardbenutzer anlegen
+dbUsers.serialize(() => {
+    dbUsers.run(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL,
+            rights TEXT
+        )
+    `);
+
+    // Standardbenutzer anlegen (nur wenn noch nicht vorhanden)
+    dbUsers.get("SELECT * FROM users WHERE username = 'admin'", [], (err, row) => {
+        if (err) {
+            console.error('Fehler beim Prüfen des Admin-Benutzers:', err);
+            return;
+        }
+        if (!row) {
+            dbUsers.run(`
+                INSERT INTO users (username, password, role, rights)
+                VALUES (?, ?, ?, ?)
+            `, ['admin', 'admin123', 'admin', JSON.stringify(['Kalkulation.html', 'EPS.html', 'Drucker.html', 'Plotter.html', 'Zuschnitte.html', 'Produktion.html', 'Palettenkonto.html', 'Aufgabe.html', 'Tourenplaner.html', 'G-Code.html', 'unternehmensplaner.html', 'Lieferant.html'])], 
+            (err) => {
+                if (err) {
+                    console.error('Fehler beim Anlegen des Admin-Benutzers:', err);
+                } else {
+                    console.log('Standard Admin-Benutzer angelegt');
+                }
+            });
+        }
+    });
+});
+
 // Produktionsaufträge Datenbank
 const dbProd = new sqlite3.Database(path.join(DB_PATH, 'produktionsauftraege.db'));
 console.log('Produktionsaufträge-Datenbank initialisiert');
@@ -29,6 +67,34 @@ console.log('Produktionsaufträge-Datenbank initialisiert');
 // Support-System Datenbank
 const dbSupport = new sqlite3.Database(path.join(DB_PATH, 'support.db'));
 console.log('Support-Datenbank initialisiert');
+
+// Login Route
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    dbUsers.get('SELECT * FROM users WHERE username = ? AND password = ?', [username, password], (err, user) => {
+        if (err) {
+            console.error('Login-Fehler:', err);
+            return res.status(500).json({ error: 'Interner Server-Fehler' });
+        }
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
+        }
+
+        // Parse rights from JSON string
+        const rights = JSON.parse(user.rights || '[]');
+        
+        res.json({
+            user: {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                rights: rights
+            }
+        });
+    });
+});
 
 // Health Check Route
 app.get('/health', (req, res) => {
