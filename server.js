@@ -5,10 +5,37 @@ const sqlite3 = require('sqlite3').verbose();
 
 const app = express(); // Express App initialisieren
 
+// CORS-Konfiguration
+const corsOptions = {
+    origin: ['https://hs-2r01.onrender.com', 'http://localhost:5050'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+
+// Zusätzliche CORS-Header für alle Routen
+app.use((req, res, next) => {
+    const allowedOrigins = ['https://hs-2r01.onrender.com', 'http://localhost:5050'];
+    const origin = req.headers.origin;
+    
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
 
 // Port aus Umgebungsvariable oder Standard-Port
 const PORT = process.env.PORT || 5050;

@@ -827,7 +827,7 @@ SOFTWARE.
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="LOGO.svg" alt="Logo" />
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSIjMDAzMzY2IiBkPSJNOCAwQzMuNTggMCAwIDMuNTggMCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0xIDEySDd2LTJoMnYyem0wLTRIN1Y0aDJ2NHoiLz48L3N2Zz4=" alt="Logo" />
                 <span>Startseite</span>
             </a>
             <div class="d-flex align-items-center mx-auto" style="width: 25%;">
@@ -1491,7 +1491,9 @@ SOFTWARE.
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         // API-Basis-URL definieren und validieren
-        const API_BASE_URL = window.location.origin;  // Verwendet automatisch die aktuelle Domain
+        const API_BASE_URL = window.location.hostname.includes('github.io') 
+            ? 'https://hs-2r01.onrender.com'  // Render.com URL
+            : window.location.origin;  // Lokale Entwicklung oder Render direkt
         
         console.log('Verwende API-Basis-URL:', API_BASE_URL);
 
