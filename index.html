@@ -1491,9 +1491,7 @@ SOFTWARE.
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         // API-Basis-URL definieren und validieren
-        const API_BASE_URL = window.location.hostname.includes('github.io') 
-            ? 'https://hs-2r01.onrender.com'  // Render.com URL
-            : window.location.origin;  // Lokale Entwicklung oder Render direkt
+        const API_BASE_URL = 'https://hs-2r01.onrender.com';  // Immer die Render.com URL verwenden
         
         console.log('Verwende API-Basis-URL:', API_BASE_URL);
 
